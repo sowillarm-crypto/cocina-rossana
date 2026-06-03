@@ -72,13 +72,15 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
 /* ── SIDEBAR desktop ── */
 #sidebar{display:none}
 @media(min-width:768px){
-  #sidebar{display:flex;flex-direction:column;width:52px;background:rgba(0,0,0,0.2);border-right:1px solid var(--border);padding:12px 0;gap:3px;position:sticky;top:54px;height:calc(100vh - 54px);overflow:hidden}
-  .sb-btn{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,0.22);font-size:18px;transition:all .15s;position:relative}
-  .sb-btn:hover{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.6)}
+  #sidebar{display:flex;flex-direction:column;width:52px;background:rgba(0,0,0,0.25);border-right:1px solid var(--border);padding:12px 0;gap:3px;position:sticky;top:54px;height:calc(100vh - 54px);overflow:hidden;transition:width .25s cubic-bezier(.4,0,.2,1);z-index:50;flex-shrink:0}
+  #sidebar:hover{width:180px}
+  .sb-btn{width:calc(100% - 12px);height:36px;border-radius:10px;display:flex;align-items:center;margin:0 6px;padding:0 10px;gap:10px;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,0.22);font-size:18px;transition:all .15s;white-space:nowrap;overflow:hidden;font-family:'DM Sans',sans-serif}
+  .sb-btn:hover{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.7)}
   .sb-btn.active{background:rgba(232,160,32,0.12);color:var(--gold)}
-  .sb-btn .tip{position:absolute;left:44px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:4px 9px;font-size:11px;white-space:nowrap;color:rgba(255,255,255,0.7);pointer-events:none;opacity:0;transition:opacity .15s;z-index:200;font-family:'DM Sans',sans-serif}
-  .sb-btn:hover .tip{opacity:1}
-  #content-wrap{display:flex;flex:1;min-height:0}
+  .sb-btn i{flex-shrink:0;width:18px;text-align:center}
+  .sb-btn .sb-label{font-size:12px;font-weight:500;opacity:0;transition:opacity .2s .05s;white-space:nowrap;overflow:hidden}
+  #sidebar:hover .sb-btn .sb-label{opacity:1}
+  #content-wrap{display:flex;flex:1;min-height:0;overflow:hidden}
 }
 
 /* ── PAGES ── */
@@ -311,14 +313,14 @@ select.field option{background:#1a1a28;color:#fff}
 
     <!-- SIDEBAR desktop -->
     <div id="sidebar">
-      <button class="sb-btn active" data-page="dashboard"><i class="ti ti-layout-dashboard"></i><span class="tip">Inicio</span></button>
-      <button class="sb-btn" data-page="pedidos"><i class="ti ti-clipboard-list"></i><span class="tip">Pedidos</span></button>
-      <button class="sb-btn" data-page="clientes"><i class="ti ti-users"></i><span class="tip">Clientes</span></button>
-      <button class="sb-btn" data-page="empresas"><i class="ti ti-building"></i><span class="tip">Empresas</span></button>
-      <button class="sb-btn" data-page="menu"><i class="ti ti-salad"></i><span class="tip">Menú del día</span></button>
-      <button class="sb-btn" data-page="pagos"><i class="ti ti-cash"></i><span class="tip">Cobros</span></button>
+      <button class="sb-btn active" data-page="dashboard"><i class="ti ti-layout-dashboard"></i><span class="sb-label">Inicio</span></button>
+      <button class="sb-btn" data-page="pedidos"><i class="ti ti-clipboard-list"></i><span class="sb-label">Pedidos</span></button>
+      <button class="sb-btn" data-page="clientes"><i class="ti ti-users"></i><span class="sb-label">Clientes</span></button>
+      <button class="sb-btn" data-page="empresas"><i class="ti ti-building"></i><span class="sb-label">Empresas</span></button>
+      <button class="sb-btn" data-page="menu"><i class="ti ti-salad"></i><span class="sb-label">Menú del día</span></button>
+      <button class="sb-btn" data-page="pagos"><i class="ti ti-cash"></i><span class="sb-label">Cobros</span></button>
       <div style="flex:1"></div>
-      <button class="sb-btn" data-page="ajustes"><i class="ti ti-settings"></i><span class="tip">Ajustes</span></button>
+      <button class="sb-btn" data-page="ajustes"><i class="ti ti-settings"></i><span class="sb-label">Ajustes</span></button>
     </div>
 
     <!-- MAIN CONTENT -->
