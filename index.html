@@ -26,7 +26,7 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
 ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px}
 
 /* ── LAYOUT ── */
-#app{display:flex;flex-direction:column;min-height:100vh}
+#app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
 .hidden{display:none!important}
 
 /* ── LOGIN ── */
@@ -84,10 +84,10 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
 }
 
 /* ── PAGES ── */
-#main-content{flex:1;overflow-y:auto;padding-bottom:80px}
+#main-content{flex:1;overflow-y:auto;padding-bottom:80px;height:100%;box-sizing:border-box}
 @media(min-width:768px){#main-content{padding-bottom:20px}}
-.page{padding:14px;max-width:1100px}
-@media(min-width:768px){.page{padding:20px}}
+.page{padding:14px;max-width:100%}
+@media(min-width:768px){.page{padding:20px 24px}}
 
 /* ── GLASS CARDS ── */
 .glass{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:18px;padding:14px 16px}
@@ -279,7 +279,7 @@ select.field option{background:#1a1a28;color:#fff}
 </div>
 
 <!-- MAIN APP -->
-<div id="main-app" class="hidden" style="display:flex;flex-direction:column;flex:1;min-height:100vh">
+<div id="main-app" class="hidden" style="display:flex;flex-direction:column;height:100vh;overflow:hidden">
 
   <!-- TOPBAR -->
   <div id="topbar">
@@ -309,7 +309,7 @@ select.field option{background:#1a1a28;color:#fff}
   </div>
 
   <!-- CONTENT WRAP -->
-  <div id="content-wrap" style="flex:1;display:flex;overflow:hidden">
+  <div id="content-wrap" style="flex:1;display:flex;overflow:hidden;min-height:0">
 
     <!-- SIDEBAR desktop -->
     <div id="sidebar">
