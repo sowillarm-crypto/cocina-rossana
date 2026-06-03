@@ -2,15 +2,15 @@
   "name": "La Cocina de Rossana",
   "short_name": "Cocina Rossana",
   "description": "Sistema de gestión · La Cocina de Rossana",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "/cocina-rossana/",
+  "scope": "/cocina-rossana/",
   "display": "standalone",
   "background_color": "#0a0a0f",
   "theme_color": "#0a0a0f",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "icon.svg",
+      "src": "/cocina-rossana/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>La Cocina de Rossana</title>
 <link rel="manifest" href="manifest.json"/>
+<link rel="icon" type="image/svg+xml" href="icon.svg"/>
 <meta name="theme-color" content="#0a0a0f"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -581,6 +582,7 @@ const db = getFirestore(app)
 const provider = new GoogleAuthProvider()
 
 // ── STATE ──
+const g=id=>document.getElementById(id);window.g=g;
 let STATE = { clientes:[], empresas:[], pedidos:[], menus:{}, pagos:[], user:null }
 let editingId = { pedido:null, cliente:null, empresa:null }
 let abonarTarget = null
@@ -605,12 +607,12 @@ function getTipo(p){ return p.empresaId?'empresa':p.clienteId?'conocido':'generi
 function avatarHTML(nombre,tipo,size='sm'){ const sz=size==='lg'?'width:40px;height:40px;font-size:14px':'width:30px;height:30px;font-size:11px'; if(tipo==='empresa')return`<div class="avatar av-spring" style="${sz}"><i class="ti ti-building" style="font-size:13px"></i></div>`; if(tipo==='generico')return`<div class="avatar av-dim" style="${sz}"><i class="ti ti-user" style="font-size:13px"></i></div>`; const ini=(nombre||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase(); return`<div class="avatar av-gold" style="${sz}">${ini}</div>` }
 function getSaldoCliente(id){ return STATE.pedidos.filter(p=>p.clienteId===id&&!p.pagado).reduce((a,p)=>a+Number(p.monto||0),0) }
 function getSaldoEmpresa(id){ return STATE.pedidos.filter(p=>p.empresaId===id&&!p.pagado).reduce((a,p)=>a+Number(p.monto||0),0) }
-function getMes(){ return parseInt(document.getElementById('sel-mes').value)||new Date().getMonth()+1 }
-function getAnio(){ return parseInt(document.getElementById('sel-anio').value)||new Date().getFullYear() }
+function getMes(){ return parseInt(g('sel-mes')?.value)||new Date().getMonth()+1 }
+function getAnio(){ return parseInt(g('sel-anio')?.value)||new Date().getFullYear() }
 function pedidosMes(){ const m=getMes(),y=getAnio(); return STATE.pedidos.filter(p=>{ const d=new Date(p.fecha+'T12:00:00'); return d.getFullYear()===y&&d.getMonth()+1===m }) }
-function toast(msg,ok=true){ const t=document.getElementById('toast'); t.textContent=msg; t.style.borderColor=ok?'rgba(48,209,88,.3)':'rgba(255,69,58,.3)'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500) }
+function toast(msg,ok=true){ const t=g('toast'); t.textContent=msg; t.style.borderColor=ok?'rgba(48,209,88,.3)':'rgba(255,69,58,.3)'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500) }
 function clean(o){ return JSON.parse(JSON.stringify(o,(k,v)=>v===undefined?null:v)) }
-function $$(id){ return document.getElementById(id) }
+
 
 // ── AUTH ──
 onAuthStateChanged(auth, u=>{
@@ -619,26 +621,26 @@ onAuthStateChanged(auth, u=>{
   if(u){ showApp(u); initListeners() } else { showLogin() }
 })
 
-function showLogin(){ $$('login-page').classList.remove('hidden'); $$('main-app').classList.add('hidden') }
+function showLogin(){ g('login-page').classList.remove('hidden'); g('main-app').classList.add('hidden') }
 function showApp(u){
-  $$('login-page').classList.add('hidden'); $$('main-app').classList.remove('hidden')
-  $$('main-app').style.display='flex'
-  if(u.photoURL){ $$('user-photo').src=u.photoURL; $$('user-photo').classList.remove('hidden') }
-  else{ $$('user-initials').textContent=u.displayName?.[0]||'?'; $$('user-initials').classList.remove('hidden') }
-  if(u.photoURL){ $$('ajustes-photo').src=u.photoURL; $$('ajustes-photo').classList.remove('hidden') }
-  else{ $$('ajustes-initials').textContent=u.displayName?.[0]||'?'; $$('ajustes-initials').classList.remove('hidden') }
-  $$('ajustes-nombre').textContent=u.displayName||''
-  $$('ajustes-email').textContent=u.email||''
+  g('login-page').classList.add('hidden'); g('main-app').classList.remove('hidden')
+  g('main-app').style.display='flex'
+  if(u.photoURL){ g('user-photo').src=u.photoURL; g('user-photo').classList.remove('hidden') }
+  else{ g('user-initials').textContent=u.displayName?.[0]||'?'; g('user-initials').classList.remove('hidden') }
+  if(u.photoURL){ g('ajustes-photo').src=u.photoURL; g('ajustes-photo').classList.remove('hidden') }
+  else{ g('ajustes-initials').textContent=u.displayName?.[0]||'?'; g('ajustes-initials').classList.remove('hidden') }
+  g('ajustes-nombre').textContent=u.displayName||''
+  g('ajustes-email').textContent=u.email||''
   initDateSelectors()
 }
 
-$$('btn-login').onclick=()=>signInWithPopup(auth,provider).catch(e=>{ if(e.code!=='auth/popup-closed-by-user') toast('Error al iniciar sesión',false) })
-$$('btn-logout').onclick=()=>signOut(auth)
-$$('btn-logout-ajustes').onclick=()=>signOut(auth)
+g('btn-login').onclick=()=>signInWithPopup(auth,provider).catch(e=>{ if(e.code!=='auth/popup-closed-by-user') toast('Error al iniciar sesión',false) })
+g('btn-logout').onclick=()=>signOut(auth)
+g('btn-logout-ajustes').onclick=()=>signOut(auth)
 
 // ── DATE SELECTORS ──
 function initDateSelectors(){
-  const now=new Date(), m=$$('sel-mes'), y=$$('sel-anio')
+  const now=new Date(), m=g('sel-mes'), y=g('sel-anio')
   m.innerHTML=MESES.map((n,i)=>`<option value="${i+1}"${i+1===now.getMonth()+1?' selected':''}>${n}</option>`).join('')
   const yr=now.getFullYear(); y.innerHTML=[yr-1,yr,yr+1].map(v=>`<option value="${v}"${v===yr?' selected':''}>${v}</option>`).join('')
   m.onchange=y.onchange=()=>renderAll()
@@ -657,7 +659,7 @@ function initListeners(){
 function navTo(page){
   currentPage=page
   document.querySelectorAll('.page').forEach(el=>el.classList.add('hidden'))
-  $$('page-'+page)?.classList.remove('hidden')
+  g('page-'+page)?.classList.remove('hidden')
   document.querySelectorAll('.sb-btn').forEach(b=>b.classList.toggle('active',b.dataset.page===page))
   document.querySelectorAll('.bnav-item').forEach(b=>{
     const a=b.dataset.page===page; b.classList.toggle('active',a)
@@ -687,22 +689,22 @@ function renderDashboard(){
   const hoyPedidos=STATE.pedidos.filter(p=>p.fecha===h)
   const cobradoHoy=hoyPedidos.filter(p=>p.pagado).reduce((a,p)=>a+Number(p.monto||0),0)
   const comensalesHoy=new Set(hoyPedidos.map(p=>p.clienteId||p.empresaId||p.id)).size
-  $$('mc-ingresos').textContent=fmtMoney(ingresos)
-  $$('mc-ingresos-sub').textContent=`vs mes anterior`
-  $$('mc-hoy').textContent=fmtMoney(cobradoHoy)
-  $$('mc-hoy-sub').textContent=`${hoyPedidos.filter(p=>p.pagado).length} pedidos`
-  $$('mc-cobrar').textContent=fmtMoney(porCobrar)
+  g('mc-ingresos').textContent=fmtMoney(ingresos)
+  g('mc-ingresos-sub').textContent=`vs mes anterior`
+  g('mc-hoy').textContent=fmtMoney(cobradoHoy)
+  g('mc-hoy-sub').textContent=`${hoyPedidos.filter(p=>p.pagado).length} pedidos`
+  g('mc-cobrar').textContent=fmtMoney(porCobrar)
   const cuentasAbiertas=[...STATE.clientes.map(c=>({...c,_tipo:'cliente',saldo:getSaldoCliente(c.id)})),...STATE.empresas.map(e=>({...e,_tipo:'empresa',saldo:getSaldoEmpresa(e.id)}))].filter(x=>x.saldo>0)
-  $$('mc-cobrar-sub').textContent=`${cuentasAbiertas.length} cuentas abiertas`
-  $$('mc-comensales').textContent=comensalesHoy
+  g('mc-cobrar-sub').textContent=`${cuentasAbiertas.length} cuentas abiertas`
+  g('mc-comensales').textContent=comensalesHoy
 
   // Alert vencidos
   const hayVencidos=STATE.pedidos.some(p=>!p.pagado&&diasDesde(p.fecha)>=7)
-  $$('dash-alert').classList.toggle('hidden',!hayVencidos)
-  if(hayVencidos) $$('dash-alert-text').innerHTML=`<strong>Hay cuentas vencidas</strong> de más de 7 días — revísalas en Cobros`
+  g('dash-alert').classList.toggle('hidden',!hayVencidos)
+  if(hayVencidos) g('dash-alert-text').innerHTML=`<strong>Hay cuentas vencidas</strong> de más de 7 días — revísalas en Cobros`
 
   // Turno strip
-  $$('turno-strip').innerHTML=Object.entries(TURNOS).map(([k,t])=>{
+  g('turno-strip').innerHTML=Object.entries(TURNOS).map(([k,t])=>{
     const m=STATE.menus[h]?.[k]
     const cnt=hoyPedidos.filter(p=>p.turno===k).length
     const act=turnoActivo===k
@@ -717,7 +719,7 @@ function renderDashboard(){
 
   // Pedidos del turno hoy
   const phoy=hoyPedidos.filter(p=>p.turno===turnoActivo)
-  $$('pedidos-hoy-list').innerHTML=phoy.length===0
+  g('pedidos-hoy-list').innerHTML=phoy.length===0
     ?`<div class="empty"><div class="empty-icon"><i class="ti ti-clipboard-list"></i></div><p>Sin pedidos en este turno aún</p></div>`
     :phoy.map(p=>`<div class="row-item">
       <div class="row-left">${avatarHTML(getNombre(p),getTipo(p))}<div><div class="row-name">${getNombre(p)}</div><div class="row-sub">${p.plato||''}</div></div></div>
@@ -727,7 +729,7 @@ function renderDashboard(){
     </div>`).join('')
 
   // Cuentas abiertas
-  $$('cuentas-list').innerHTML=cuentasAbiertas.length===0
+  g('cuentas-list').innerHTML=cuentasAbiertas.length===0
     ?`<div class="empty"><div class="empty-icon" style="background:rgba(48,209,88,.08);color:var(--spring)"><i class="ti ti-check"></i></div><p style="color:rgba(48,209,88,.6)">Todo cobrado</p></div>`
     :cuentasAbiertas.sort((a,b)=>b.saldo-a.saldo).map(c=>{
       const pp=STATE.pedidos.filter(p=>(p.clienteId===c.id||p.empresaId===c.id)&&!p.pagado)
@@ -748,7 +750,7 @@ function renderDashboard(){
   const total=pag.reduce((a,p)=>a+Number(p.monto||0),0)
   const por=m=>pag.filter(p=>p.medio===m).reduce((a,p)=>a+Number(p.monto||0),0)
   const ef=por('Efectivo'),yp=por('Yape'),mx=por('Mixto')
-  $$('pagos-bars').innerHTML=[
+  g('pagos-bars').innerHTML=[
     {label:'Efectivo',val:ef,pct:total?Math.round(ef/total*100):0,color:'var(--spring)'},
     {label:'Yape',val:yp,pct:total?Math.round(yp/total*100):0,color:'#7F6FE8'},
     {label:'Mixto',val:mx,pct:total?Math.round(mx/total*100):0,color:'var(--gold)'},
@@ -760,7 +762,7 @@ function renderDashboard(){
 
   // Últimos pedidos
   const ult=STATE.pedidos.slice(0,8)
-  $$('ultimos-tbody').innerHTML=ult.map(p=>`<tr>
+  g('ultimos-tbody').innerHTML=ult.map(p=>`<tr>
     <td><div style="font-weight:600;color:rgba(255,255,255,.8)">${getNombre(p)}</div><div style="font-size:9px;color:rgba(255,255,255,.25)">${fmtFechaLabel(p.fecha)}</div></td>
     <td>${badgeTurno(p.turno)}</td>
     <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.plato||'—'}</td>
@@ -769,7 +771,7 @@ function renderDashboard(){
     <td>${badgePago(estadoPago(p))}</td>
     <td><button class="btn-icon" onclick="editarPedido('${p.id}')"><i class="ti ti-edit"></i></button></td>
   </tr>`).join('')
-  if(ult.length===0) $$('ultimos-tbody').innerHTML=`<tr><td colspan="7" style="text-align:center;color:rgba(255,255,255,.25);padding:20px">Sin pedidos aún</td></tr>`
+  if(ult.length===0) g('ultimos-tbody').innerHTML=`<tr><td colspan="7" style="text-align:center;color:rgba(255,255,255,.25);padding:20px">Sin pedidos aún</td></tr>`
 }
 
 window.setTurno=t=>{turnoActivo=t;renderDashboard()}
@@ -778,17 +780,17 @@ window.editarPedido=id=>{const p=STATE.pedidos.find(x=>x.id===id);if(p)openModal
 
 // ── PEDIDOS PAGE ──
 function renderPedidos(){
-  const q=$$('search-pedidos')?.value?.toLowerCase()||''
-  const ft=$$('filtro-turno')?.value||''
-  const fe=$$('filtro-estado')?.value||''
+  const q=g('search-pedidos')?.value?.toLowerCase()||''
+  const ft=g('filtro-turno')?.value||''
+  const fe=g('filtro-estado')?.value||''
   const filtrados=STATE.pedidos.filter(p=>{
     if(ft&&p.turno!==ft)return false
     if(fe&&estadoPago(p)!==fe)return false
     if(q){const n=getNombre(p).toLowerCase();if(!n.includes(q)&&!(p.plato||'').toLowerCase().includes(q))return false}
     return true
   })
-  const tbody=$$('pedidos-tbody')
-  $$('pedidos-empty').classList.toggle('hidden',filtrados.length>0)
+  const tbody=g('pedidos-tbody')
+  g('pedidos-empty').classList.toggle('hidden',filtrados.length>0)
   tbody.innerHTML=filtrados.map(p=>`<tr>
     <td><div style="font-weight:600;color:rgba(255,255,255,.8)">${getNombre(p)}</div><div style="font-size:9px;color:rgba(255,255,255,.25);text-transform:capitalize">${getTipo(p)}</div></td>
     <td style="color:rgba(255,255,255,.4)">${fmtFechaLabel(p.fecha)}</td>
@@ -806,16 +808,16 @@ function renderPedidos(){
 }
 
 window.borrarPedido=async id=>{if(confirm('¿Eliminar este pedido?')){await deleteDoc(doc(db,'pedidos',id));toast('Pedido eliminado')}}
-$$('search-pedidos')?.addEventListener('input',renderPedidos)
-$$('filtro-turno')?.addEventListener('change',renderPedidos)
-$$('filtro-estado')?.addEventListener('change',renderPedidos)
+g('search-pedidos')?.addEventListener('input',renderPedidos)
+g('filtro-turno')?.addEventListener('change',renderPedidos)
+g('filtro-estado')?.addEventListener('change',renderPedidos)
 
 // ── CLIENTES PAGE ──
 function renderClientes(){
-  const q=$$('search-clientes')?.value?.toLowerCase()||''
+  const q=g('search-clientes')?.value?.toLowerCase()||''
   const filtrados=STATE.clientes.filter(c=>c.nombre?.toLowerCase().includes(q))
-  $$('clientes-empty').classList.toggle('hidden',filtrados.length>0)
-  $$('clientes-grid').innerHTML=filtrados.map(c=>{
+  g('clientes-empty').classList.toggle('hidden',filtrados.length>0)
+  g('clientes-grid').innerHTML=filtrados.map(c=>{
     const saldo=getSaldoCliente(c.id)
     const hist=STATE.pedidos.filter(p=>p.clienteId===c.id)
     const total=hist.reduce((a,p)=>a+Number(p.monto||0),0)
@@ -845,14 +847,14 @@ function renderClientes(){
   }).join('')
 }
 
-$$('search-clientes')?.addEventListener('input',renderClientes)
+g('search-clientes')?.addEventListener('input',renderClientes)
 window.editarCliente=id=>{const c=STATE.clientes.find(x=>x.id===id);if(c)openModalCliente(c)}
 window.borrarCliente=async id=>{if(confirm('¿Eliminar cliente?')){await deleteDoc(doc(db,'clientes',id));toast('Cliente eliminado')}}
 
 // ── EMPRESAS PAGE ──
 function renderEmpresas(){
-  $$('empresas-empty').classList.toggle('hidden',STATE.empresas.length>0)
-  $$('empresas-grid').innerHTML=STATE.empresas.map(e=>{
+  g('empresas-empty').classList.toggle('hidden',STATE.empresas.length>0)
+  g('empresas-grid').innerHTML=STATE.empresas.map(e=>{
     const saldo=getSaldoEmpresa(e.id)
     const hist=STATE.pedidos.filter(p=>p.empresaId===e.id)
     const total=hist.reduce((a,p)=>a+Number(p.monto||0),0)
@@ -884,10 +886,10 @@ window.editarEmpresa=id=>{const e=STATE.empresas.find(x=>x.id===id);if(e)openMod
 // ── MENÚ PAGE ──
 function renderMenu(){
   const d=new Date(menuFecha+'T12:00:00')
-  $$('menu-fecha-label').textContent=d.toLocaleDateString('es-PE',{weekday:'long',day:'numeric',month:'long',year:'numeric'})
-  $$('menu-date-pick').value=menuFecha
+  g('menu-fecha-label').textContent=d.toLocaleDateString('es-PE',{weekday:'long',day:'numeric',month:'long',year:'numeric'})
+  g('menu-date-pick').value=menuFecha
   const m=STATE.menus[menuFecha]||{}
-  $$('menu-cards').innerHTML=Object.entries(TURNOS).map(([k,t])=>{
+  g('menu-cards').innerHTML=Object.entries(TURNOS).map(([k,t])=>{
     const tm=m[k]
     return `<div class="menu-card" style="background:${t.color}10;border:1px solid ${t.color}25">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -908,7 +910,7 @@ function renderMenu(){
 
   // Historial
   const recientes=Object.entries(STATE.menus).filter(([d])=>d!==menuFecha).sort(([a],[b])=>b.localeCompare(a)).slice(0,7)
-  $$('menu-historial').innerHTML=recientes.length===0?`<div style="font-size:12px;color:rgba(255,255,255,.2);text-align:center;padding:16px">Sin menús anteriores</div>`
+  g('menu-historial').innerHTML=recientes.length===0?`<div style="font-size:12px;color:rgba(255,255,255,.2);text-align:center;padding:16px">Sin menús anteriores</div>`
   :recientes.map(([fecha,m])=>`<div class="glass-sm" style="display:flex;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer" onclick="menuFecha='${fecha}';renderMenu()">
     <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,.4);min-width:90px">${fmtFechaLabel(fecha)}</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;flex:1">${Object.entries(TURNOS).map(([k,t])=>m[k]?`<span style="font-size:10px;color:${t.color}"><i class="ti ${t.icon}" style="font-size:10px"></i> ${m[k].fondo||'—'}</span>`:'').join('')}</div>
@@ -923,7 +925,7 @@ window.editarMenu=turno=>{
     <div style="background:#13131e;border:1px solid rgba(255,255,255,.1);border-radius:24px;width:100%;max-width:420px;animation:scaleIn .2s ease">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:1px solid var(--border)">
         <div style="font-size:15px;font-weight:700;color:${t.color}"><i class="ti ${t.icon}"></i> ${t.label}</div>
-        <button class="btn-icon" onclick="$$('menu-modal-overlay').remove()"><i class="ti ti-x"></i></button>
+        <button class="btn-icon" onclick="g('menu-modal-overlay').remove()"><i class="ti ti-x"></i></button>
       </div>
       <div style="padding:18px 20px">
         ${turno==='almuerzo'?`<div class="form-group"><span class="field-label">Entrada</span><input class="field" id="mf-entrada" value="${m.entrada||''}" placeholder="Sopa de verduras…"/></div>`:''}
@@ -931,7 +933,7 @@ window.editarMenu=turno=>{
         <div class="form-group"><span class="field-label">${turno==='desayuno'?'Bebidas (café, mate…)':'Refresco / bebida'}</span><input class="field" id="mf-refresco" value="${m.refresco||''}" placeholder="Chicha morada, café…"/></div>
         <div class="form-group"><span class="field-label">Extras (opcional)</span><input class="field" id="mf-extras" value="${m.extras||''}" placeholder="Pan, postre…"/></div>
         <div style="display:flex;gap:8px;margin-top:4px">
-          <button class="btn btn-ghost-sm" style="flex:1" onclick="$$('menu-modal-overlay').remove()">Cancelar</button>
+          <button class="btn btn-ghost-sm" style="flex:1" onclick="g('menu-modal-overlay').remove()">Cancelar</button>
           <button class="btn btn-gold-sm" style="flex:1" onclick="guardarMenu()"><i class="ti ti-check"></i> Guardar</button>
         </div>
       </div>
@@ -941,15 +943,15 @@ window.editarMenu=turno=>{
 }
 
 window.guardarMenu=async()=>{
-  const data={fondo:($$('mf-fondo')?.value||'').trim(),refresco:($$('mf-refresco')?.value||'').trim(),extras:($$('mf-extras')?.value||'').trim()}
-  if(editandoTurnoMenu==='almuerzo') data.entrada=($$('mf-entrada')?.value||'').trim()
+  const data={fondo:(g('mf-fondo')?.value||'').trim(),refresco:(g('mf-refresco')?.value||'').trim(),extras:(g('mf-extras')?.value||'').trim()}
+  if(editandoTurnoMenu==='almuerzo') data.entrada=(g('mf-entrada')?.value||'').trim()
   await setDoc(doc(db,'menus',menuFecha),{[editandoTurnoMenu]:data,fecha:menuFecha},{merge:true})
-  $$('menu-modal-overlay')?.remove(); toast('Menú guardado')
+  g('menu-modal-overlay')?.remove(); toast('Menú guardado')
 }
 
-$$('btn-dia-prev')?.addEventListener('click',()=>{const d=new Date(menuFecha+'T12:00:00');d.setDate(d.getDate()-1);menuFecha=fmtFechaISO(d);renderMenu()})
-$$('btn-dia-next')?.addEventListener('click',()=>{const d=new Date(menuFecha+'T12:00:00');d.setDate(d.getDate()+1);menuFecha=fmtFechaISO(d);renderMenu()})
-$$('menu-date-pick')?.addEventListener('change',e=>{menuFecha=e.target.value;renderMenu()})
+g('btn-dia-prev')?.addEventListener('click',()=>{const d=new Date(menuFecha+'T12:00:00');d.setDate(d.getDate()-1);menuFecha=fmtFechaISO(d);renderMenu()})
+g('btn-dia-next')?.addEventListener('click',()=>{const d=new Date(menuFecha+'T12:00:00');d.setDate(d.getDate()+1);menuFecha=fmtFechaISO(d);renderMenu()})
+g('menu-date-pick')?.addEventListener('change',e=>{menuFecha=e.target.value;renderMenu()})
 
 // ── PAGOS PAGE ──
 function renderPagos(){
@@ -958,9 +960,9 @@ function renderPagos(){
     ...STATE.empresas.map(e=>({...e,_tipo:'empresa',saldo:getSaldoEmpresa(e.id)})).filter(x=>x.saldo>0)
   ].sort((a,b)=>b.saldo-a.saldo)
   const totalDeuda=conDeuda.reduce((a,x)=>a+x.saldo,0)
-  $$('pagos-resumen-label').textContent=`${conDeuda.length} cuentas abiertas · ${fmtMoney(totalDeuda)} por cobrar`
-  $$('pagos-empty').classList.toggle('hidden',conDeuda.length>0)
-  $$('pagos-grid').innerHTML=conDeuda.map(item=>{
+  g('pagos-resumen-label').textContent=`${conDeuda.length} cuentas abiertas · ${fmtMoney(totalDeuda)} por cobrar`
+  g('pagos-empty').classList.toggle('hidden',conDeuda.length>0)
+  g('pagos-grid').innerHTML=conDeuda.map(item=>{
     const pend=STATE.pedidos.filter(p=>(item._tipo==='cliente'?p.clienteId===item.id:p.empresaId===item.id)&&!p.pagado)
     const hayVenc=pend.some(p=>estadoPago(p)==='vencido')
     return `<div class="glass" style="${hayVenc?'border-color:rgba(255,69,58,.2)':''}">
@@ -989,9 +991,9 @@ function renderPagos(){
 
 window.openAbonar=(id,tipo,saldo)=>{
   abonarTarget={id,tipo}
-  $$('abonar-saldo').textContent=fmtMoney(saldo)
-  $$('abonar-monto').value=''
-  $$('modal-abonar-title').textContent=`Abonar — ${tipo==='cliente'?STATE.clientes.find(x=>x.id===id)?.nombre:STATE.empresas.find(x=>x.id===id)?.nombre}`
+  g('abonar-saldo').textContent=fmtMoney(saldo)
+  g('abonar-monto').value=''
+  g('modal-abonar-title').textContent=`Abonar — ${tipo==='cliente'?STATE.clientes.find(x=>x.id===id)?.nombre:STATE.empresas.find(x=>x.id===id)?.nombre}`
   openModal('modal-abonar')
 }
 
@@ -1001,15 +1003,15 @@ window.pagarTodo=async(id,tipo)=>{
   toast('Cuenta cerrada — todo pagado')
 }
 
-$$('btn-guardar-abono').onclick=async()=>{
-  const monto=Number($$('abonar-monto').value)
+g('btn-guardar-abono').onclick=async()=>{
+  const monto=Number(g('abonar-monto').value)
   if(!monto||monto<=0){toast('Monto inválido',false);return}
   if(!abonarTarget)return
   const {id,tipo}=abonarTarget
   const pend=STATE.pedidos.filter(p=>(tipo==='cliente'?p.clienteId===id:p.empresaId===id)&&!p.pagado).sort((a,b)=>a.fecha.localeCompare(b.fecha))
   let rest=monto
   for(const p of pend){ if(rest<=0)break; if(rest>=Number(p.monto)){await updateDoc(doc(db,'pedidos',p.id),{pagado:true});rest-=Number(p.monto)} }
-  await addDoc(collection(db,'pagos'),{...(tipo==='cliente'?{clienteId:id}:{empresaId:id}),monto,medio:$$('abonar-medio').value,fecha:hoy(),creadoEn:serverTimestamp()})
+  await addDoc(collection(db,'pagos'),{...(tipo==='cliente'?{clienteId:id}:{empresaId:id}),monto,medio:g('abonar-medio').value,fecha:hoy(),creadoEn:serverTimestamp()})
   closeModal('modal-abonar'); toast('Abono registrado')
 }
 
@@ -1021,8 +1023,8 @@ function renderAjustes(){
     {label:'Pedidos',val:STATE.pedidos.length},
     {label:'Menús',val:Object.keys(STATE.menus).length},
   ]
-  $$('stats-grid').innerHTML=stats.map(s=>`<div style="background:rgba(0,0,0,.2);border-radius:12px;padding:12px"><div style="font-size:10px;color:rgba(255,255,255,.25);margin-bottom:4px">${s.label}</div><div style="font-size:22px;font-weight:700;color:rgba(255,255,255,.7)">${s.val}</div></div>`).join('')
-  $$('usuarios-list').innerHTML=ALLOWED.map((email,i)=>`<div style="display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.2);border-radius:12px;padding:10px 12px;margin-bottom:8px">
+  g('stats-grid').innerHTML=stats.map(s=>`<div style="background:rgba(0,0,0,.2);border-radius:12px;padding:12px"><div style="font-size:10px;color:rgba(255,255,255,.25);margin-bottom:4px">${s.label}</div><div style="font-size:22px;font-weight:700;color:rgba(255,255,255,.7)">${s.val}</div></div>`).join('')
+  g('usuarios-list').innerHTML=ALLOWED.map((email,i)=>`<div style="display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.2);border-radius:12px;padding:10px 12px;margin-bottom:8px">
     <div style="width:30px;height:30px;border-radius:50%;background:rgba(232,160,32,.15);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--gold)">${i===0?'E':'R'}</div>
     <div><div style="font-size:12px;font-weight:600;color:rgba(255,255,255,.8)">${i===0?'Erick Solier':'Rossana'}</div><div style="font-size:10px;color:rgba(255,255,255,.35)">${email}</div></div>
     <span class="badge badge-pagado" style="margin-left:auto">Activo</span>
@@ -1032,9 +1034,9 @@ function renderAjustes(){
 // ── MODAL PEDIDO ──
 function openModalPedido(p=null){
   editingId.pedido=p?.id||null
-  $$('modal-pedido-title').textContent=p?'Editar pedido':'Nuevo pedido'
+  g('modal-pedido-title').textContent=p?'Editar pedido':'Nuevo pedido'
   pagadoToggle=p?.pagado||false
-  const toggle=$$('toggle-pagado')
+  const toggle=g('toggle-pagado')
   toggle.className=`toggle-track ${pagadoToggle?'on':'off'}`
 
   // Turno buttons
@@ -1046,62 +1048,62 @@ function openModalPedido(p=null){
   })
 
   // Populate cliente selects
-  const csel=$$('pedido-cliente-id')
+  const csel=g('pedido-cliente-id')
   csel.innerHTML=`<option value="">— Seleccionar —</option>`+STATE.clientes.map(c=>`<option value="${c.id}"${p?.clienteId===c.id?' selected':''}>${c.nombre}</option>`).join('')
-  const esel=$$('pedido-empresa-id')
+  const esel=g('pedido-empresa-id')
   esel.innerHTML=`<option value="">— Seleccionar —</option>`+STATE.empresas.map(e=>`<option value="${e.id}"${p?.empresaId===e.id?' selected':''}>${e.nombre}</option>`).join('')
 
   const tipo=p?.empresaId?'empresa':p?.clienteId?'conocido':'generico'
-  $$('pedido-cliente-tipo').value=tipo
+  g('pedido-cliente-tipo').value=tipo
   actualizarTipoCliente(tipo)
 
-  $$('pedido-plato').value=p?.plato||''
-  $$('pedido-medio').value=p?.medio||'Efectivo'
-  $$('pedido-monto').value=p?.monto||''
-  $$('pedido-ef').value=p?.montoEfectivo||''
-  $$('pedido-yp').value=p?.montoYape||''
-  $$('pedido-notas').value=p?.notas||''
+  g('pedido-plato').value=p?.plato||''
+  g('pedido-medio').value=p?.medio||'Efectivo'
+  g('pedido-monto').value=p?.monto||''
+  g('pedido-ef').value=p?.montoEfectivo||''
+  g('pedido-yp').value=p?.montoYape||''
+  g('pedido-notas').value=p?.notas||''
   actualizarMixto()
   openModal('modal-pedido')
 }
 
 function actualizarTipoCliente(tipo){
-  $$('pedido-cliente-sel').classList.toggle('hidden',tipo!=='conocido')
-  $$('pedido-empresa-sel').classList.toggle('hidden',tipo!=='empresa')
+  g('pedido-cliente-sel').classList.toggle('hidden',tipo!=='conocido')
+  g('pedido-empresa-sel').classList.toggle('hidden',tipo!=='empresa')
 }
 
 function actualizarMixto(){
-  $$('pedido-mixto-wrap').classList.toggle('hidden',$$('pedido-medio').value!=='Mixto')
+  g('pedido-mixto-wrap').classList.toggle('hidden',g('pedido-medio').value!=='Mixto')
 }
 
 window.togglePagado=()=>{
   pagadoToggle=!pagadoToggle
-  const toggle=$$('toggle-pagado')
+  const toggle=g('toggle-pagado')
   toggle.className=`toggle-track ${pagadoToggle?'on':'off'}`
 }
 
-$$('pedido-cliente-tipo')?.addEventListener('change',e=>actualizarTipoCliente(e.target.value))
-$$('pedido-medio')?.addEventListener('change',actualizarMixto)
+g('pedido-cliente-tipo')?.addEventListener('change',e=>actualizarTipoCliente(e.target.value))
+g('pedido-medio')?.addEventListener('change',actualizarMixto)
 document.querySelectorAll('.turno-btn').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('.turno-btn').forEach(x=>{x.style.background='transparent';x.style.borderColor='rgba(255,255,255,0.08)';x.style.color='rgba(255,255,255,0.5)'})
   b.style.background='rgba(232,160,32,0.15)';b.style.borderColor='rgba(232,160,32,0.4)';b.style.color='var(--gold)'
 }))
 
-$$('btn-guardar-pedido').onclick=async()=>{
-  const plato=$$('pedido-plato').value.trim()
-  const monto=Number($$('pedido-monto').value)
+g('btn-guardar-pedido').onclick=async()=>{
+  const plato=g('pedido-plato').value.trim()
+  const monto=Number(g('pedido-monto').value)
   if(!plato){toast('Ingresa el plato',false);return}
   if(!monto||monto<=0){toast('Monto inválido',false);return}
   const turnoSel=document.querySelector('.turno-btn[style*="rgba(232,160,32"]')?.dataset?.turno||turnoActivo
-  const tipo=$$('pedido-cliente-tipo').value
+  const tipo=g('pedido-cliente-tipo').value
   const data={
     turno:turnoSel,plato,monto,pagado:pagadoToggle,
-    medio:$$('pedido-medio').value,
-    notas:$$('pedido-notas').value.trim()||null,
-    clienteId:tipo==='conocido'?($$('pedido-cliente-id').value||null):null,
-    empresaId:tipo==='empresa'?($$('pedido-empresa-id').value||null):null,
-    montoEfectivo:$$('pedido-ef').value?Number($$('pedido-ef').value):null,
-    montoYape:$$('pedido-yp').value?Number($$('pedido-yp').value):null,
+    medio:g('pedido-medio').value,
+    notas:g('pedido-notas').value.trim()||null,
+    clienteId:tipo==='conocido'?(g('pedido-cliente-id').value||null):null,
+    empresaId:tipo==='empresa'?(g('pedido-empresa-id').value||null):null,
+    montoEfectivo:g('pedido-ef').value?Number(g('pedido-ef').value):null,
+    montoYape:g('pedido-yp').value?Number(g('pedido-yp').value):null,
   }
   const clean=o=>JSON.parse(JSON.stringify(o,(k,v)=>v===null?null:v))
   if(editingId.pedido){ await updateDoc(doc(db,'pedidos',editingId.pedido),{...clean(data),actualizadoEn:serverTimestamp()}); toast('Pedido actualizado') }
@@ -1109,25 +1111,25 @@ $$('btn-guardar-pedido').onclick=async()=>{
   closeModal('modal-pedido')
 }
 
-$$('btn-nuevo-pedido-dash')?.onclick=()=>openModalPedido()
-$$('btn-nuevo-pedido')?.onclick=()=>openModalPedido()
-$$('modal-pedido-close')?.onclick=()=>closeModal('modal-pedido')
+g('btn-nuevo-pedido-dash')?.onclick=()=>openModalPedido()
+g('btn-nuevo-pedido')?.onclick=()=>openModalPedido()
+g('modal-pedido-close')?.onclick=()=>closeModal('modal-pedido')
 
 // ── MODAL CLIENTE ──
 function openModalCliente(c=null){
   editingId.cliente=c?.id||null
-  $$('modal-cliente-title').textContent=c?'Editar cliente':'Nuevo cliente'
-  $$('cliente-nombre').value=c?.nombre||''
-  $$('cliente-tel').value=c?.telefono||''
-  $$('cliente-notas').value=c?.notas||''
+  g('modal-cliente-title').textContent=c?'Editar cliente':'Nuevo cliente'
+  g('cliente-nombre').value=c?.nombre||''
+  g('cliente-tel').value=c?.telefono||''
+  g('cliente-notas').value=c?.notas||''
   openModal('modal-cliente')
 }
 
-$$('btn-nuevo-cliente')?.onclick=()=>openModalCliente()
-$$('btn-guardar-cliente').onclick=async()=>{
-  const nombre=$$('cliente-nombre').value.trim()
+g('btn-nuevo-cliente')?.onclick=()=>openModalCliente()
+g('btn-guardar-cliente').onclick=async()=>{
+  const nombre=g('cliente-nombre').value.trim()
   if(!nombre){toast('Ingresa un nombre',false);return}
-  const data={nombre,telefono:$$('cliente-tel').value.trim()||null,notas:$$('cliente-notas').value.trim()||null,tipo:'conocido'}
+  const data={nombre,telefono:g('cliente-tel').value.trim()||null,notas:g('cliente-notas').value.trim()||null,tipo:'conocido'}
   if(editingId.cliente){ await updateDoc(doc(db,'clientes',editingId.cliente),data); toast('Cliente actualizado') }
   else{ await addDoc(collection(db,'clientes'),{...data,creadoEn:serverTimestamp()}); toast('Cliente registrado') }
   closeModal('modal-cliente')
@@ -1136,27 +1138,27 @@ $$('btn-guardar-cliente').onclick=async()=>{
 // ── MODAL EMPRESA ──
 function openModalEmpresa(e=null){
   editingId.empresa=e?.id||null
-  $$('modal-empresa-title').textContent=e?'Editar empresa':'Nueva empresa'
-  $$('empresa-nombre').value=e?.nombre||''
-  $$('empresa-contacto').value=e?.contacto||''
-  $$('empresa-trabajadores').value=e?.trabajadores||''
-  $$('empresa-tel').value=e?.telefono||''
-  $$('empresa-notas').value=e?.notas||''
+  g('modal-empresa-title').textContent=e?'Editar empresa':'Nueva empresa'
+  g('empresa-nombre').value=e?.nombre||''
+  g('empresa-contacto').value=e?.contacto||''
+  g('empresa-trabajadores').value=e?.trabajadores||''
+  g('empresa-tel').value=e?.telefono||''
+  g('empresa-notas').value=e?.notas||''
   openModal('modal-empresa')
 }
 
-$$('btn-nueva-empresa')?.onclick=()=>openModalEmpresa()
-$$('btn-guardar-empresa').onclick=async()=>{
-  const nombre=$$('empresa-nombre').value.trim()
+g('btn-nueva-empresa')?.onclick=()=>openModalEmpresa()
+g('btn-guardar-empresa').onclick=async()=>{
+  const nombre=g('empresa-nombre').value.trim()
   if(!nombre){toast('Ingresa el nombre',false);return}
-  const data={nombre,contacto:$$('empresa-contacto').value.trim()||null,trabajadores:Number($$('empresa-trabajadores').value)||null,telefono:$$('empresa-tel').value.trim()||null,notas:$$('empresa-notas').value.trim()||null}
+  const data={nombre,contacto:g('empresa-contacto').value.trim()||null,trabajadores:Number(g('empresa-trabajadores').value)||null,telefono:g('empresa-tel').value.trim()||null,notas:g('empresa-notas').value.trim()||null}
   if(editingId.empresa){ await updateDoc(doc(db,'empresas',editingId.empresa),data); toast('Empresa actualizada') }
   else{ await addDoc(collection(db,'empresas'),{...data,creadoEn:serverTimestamp()}); toast('Empresa registrada') }
   closeModal('modal-empresa')
 }
 
 // ── PDF ──
-$$('btn-pdf')?.onclick=()=>generarPDF()
+g('btn-pdf')?.onclick=()=>generarPDF()
 function generarPDF(){
   const script=document.createElement('script')
   script.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
@@ -1211,10 +1213,10 @@ function generarPDF(){
 }
 
 // ── MODAL HELPERS ──
-function openModal(id){ $$(id).classList.remove('hidden') }
-function closeModal(id){ $$(id).classList.add('hidden') }
+function openModal(id){ g(id).classList.remove('hidden') }
+function closeModal(id){ g(id).classList.add('hidden') }
 window.closeModal=closeModal
-window.$$=$$
+
 
 document.querySelectorAll('.modal-overlay').forEach(m=>{
   m.addEventListener('click',e=>{ if(e.target===m) m.classList.add('hidden') })
