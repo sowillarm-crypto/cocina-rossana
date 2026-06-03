@@ -66,8 +66,9 @@ button,input,select,textarea{font-family:inherit}
 #content{flex:1;overflow-y:auto;background:var(--gray-50);width:100%}
 
 /* ── SIDEBAR ── */
-#sidebar{width:64px;background:var(--bg-sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:0;transition:width .25s cubic-bezier(.4,0,.2,1);overflow:hidden;flex-shrink:0;z-index:100;position:relative}
-#sidebar:hover{width:220px}
+#sidebar{width:64px;background:var(--bg-sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:0;transition:width .25s cubic-bezier(.4,0,.2,1);overflow:hidden;flex-shrink:0;z-index:200;position:absolute;top:0;bottom:0;left:0}
+#sidebar:hover{width:220px;box-shadow:4px 0 20px rgba(0,0,0,0.08)}
+#main-wrap{margin-left:64px;flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
 .sb-top{padding:16px 0;width:100%;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--border);margin-bottom:8px;min-height:64px}
 .sb-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--gold-light),var(--gold));border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .sb-brand{margin-left:12px;white-space:nowrap;overflow:hidden;opacity:0;transition:opacity .15s .05s}
@@ -93,10 +94,9 @@ button,input,select,textarea{font-family:inherit}
 .sb-user-email{font-size:10px;color:var(--gray-400)}
 
 /* ── MAIN ── */
-#main-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
 
 /* ── TOPBAR ── */
-#topbar{background:var(--bg-topbar);border-bottom:1px solid var(--border);height:60px;display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0;box-shadow:var(--shadow)}
+#topbar{background:var(--bg-topbar);border-bottom:1px solid var(--border);height:60px;display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0;box-shadow:var(--shadow);position:sticky;top:0;z-index:10}
 .tb-title{font-size:18px;font-weight:700;color:var(--gray-900);letter-spacing:-.02em}
 .tb-sub{font-size:12px;color:var(--gray-400);font-weight:400}
 .tb-right{margin-left:auto;display:flex;align-items:center;gap:8px}
@@ -114,7 +114,7 @@ button,input,select,textarea{font-family:inherit}
 .dev-tag span{color:var(--gold);font-style:normal;font-weight:600}
 
 /* ── CONTENT ── */
-#content{flex:1;overflow-y:auto;background:var(--bg-main)}
+#content{flex:1;overflow-y:auto;background:var(--bg-main);width:100%}
 .page{padding:24px;max-width:1200px}
 .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;gap:12px;flex-wrap:wrap}
 .page-title{font-size:22px;font-weight:800;color:var(--gray-900);letter-spacing:-.03em}
@@ -600,8 +600,12 @@ select.field option{background:#fff;color:var(--gray-800)}
       </div>
       <div class="form-group">
         <span class="field-label">Plato / consumo</span>
-        <input class="field" id="mp-plato" placeholder="Ej: Lomo saltado, Caldo de gallina…" list="platos-datalist"/>
-        <datalist id="platos-datalist"></datalist>
+        <div style="display:flex;gap:6px">
+          <input class="field" id="mp-plato" placeholder="Escribe o selecciona…" style="flex:1" autocomplete="off"/>
+          <select id="mp-plato-sel" style="width:auto;max-width:180px" class="field" onchange="if(this.value){g('mp-plato').value=this.value;this.value=''}">
+            <option value="">Ver opciones del turno</option>
+          </select>
+        </div>
       </div>
       <div class="form-row">
         <div class="form-group"><span class="field-label">Medio de pago</span><select class="field" id="mp-medio"><option>Efectivo</option><option>Yape</option><option>Mixto</option></select></div>
@@ -1242,16 +1246,20 @@ function openModalPedido(p=null){
   updateTipoCl(tipoCl)
 
   // Platos datalist
-  const platos=new Set()
-  Object.values(S.menus).forEach(m=>Object.values(m).forEach(tm=>{
+  // Get platos only from the selected turno's menus
+  const tSelAct=document.querySelector('.turno-btn[class*="active-"]')?.dataset?.turno||turnoActivo
+  const platosSet=new Set()
+  Object.values(S.menus).forEach(m=>{
+    const tm=m[tSelAct]
     if(tm&&typeof tm==='object'){
-      if(tm.platos&&Array.isArray(tm.platos)) tm.platos.forEach(p=>platos.add(p))
-      else if(tm.fondo) tm.fondo.split(' / ').forEach(p=>platos.add(p.trim()))
-      if(tm.entrada) platos.add(tm.entrada)
-      if(tm.refresco) platos.add(tm.refresco)
+      if(tm.platos&&Array.isArray(tm.platos)) tm.platos.forEach(p=>{if(p)platosSet.add(p)})
+      else if(tm.fondo) tm.fondo.split(' / ').forEach(p=>{if(p.trim())platosSet.add(p.trim())})
     }
-  }))
-  g('platos-datalist').innerHTML=[...platos].filter(Boolean).map(pl=>`<option value="${pl}">`).join('')
+  })
+  const pSel=g('mp-plato-sel')
+  if(pSel){
+    pSel.innerHTML=`<option value="">Ver opciones del turno (${tSelAct})</option>`+[...platosSet].map(pl=>`<option value="${pl}">${pl}</option>`).join('')
+  }
 
   g('mp-plato').value=p?.plato||''
   g('mp-medio').value=p?.medio||'Efectivo'
@@ -1271,6 +1279,18 @@ g('mp-medio').onchange=updateMixto
 document.querySelectorAll('.turno-btn').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('.turno-btn').forEach(x=>x.className='turno-btn')
   b.className=`turno-btn active-${b.dataset.turno==='desayuno'?'des':b.dataset.turno==='almuerzo'?'alm':'cen'}`
+  // Update platos dropdown for this turno
+  const tSel=b.dataset.turno
+  const platosSet=new Set()
+  Object.values(S.menus).forEach(m=>{
+    const tm=m[tSel]
+    if(tm&&typeof tm==='object'){
+      if(tm.platos&&Array.isArray(tm.platos)) tm.platos.forEach(p=>{if(p)platosSet.add(p)})
+      else if(tm.fondo) tm.fondo.split(' / ').forEach(p=>{if(p.trim())platosSet.add(p.trim())})
+    }
+  })
+  const pSel=g('mp-plato-sel')
+  if(pSel) pSel.innerHTML=`<option value="">Ver platos del ${b.querySelector('span').textContent}</option>`+[...platosSet].map(pl=>`<option value="${pl}">${pl}</option>`).join('')
 }))
 
 g('btn-guardar-pedido').onclick=async()=>{
