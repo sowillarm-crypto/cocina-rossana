@@ -582,7 +582,7 @@ const db = getFirestore(app)
 const provider = new GoogleAuthProvider()
 
 // ── STATE ──
-const g=id=>document.getElementById(id);window.g=g;
+const g=id=>document.getElementById(id);
 let STATE = { clientes:[], empresas:[], pedidos:[], menus:{}, pagos:[], user:null }
 let editingId = { pedido:null, cliente:null, empresa:null }
 let abonarTarget = null
@@ -607,8 +607,8 @@ function getTipo(p){ return p.empresaId?'empresa':p.clienteId?'conocido':'generi
 function avatarHTML(nombre,tipo,size='sm'){ const sz=size==='lg'?'width:40px;height:40px;font-size:14px':'width:30px;height:30px;font-size:11px'; if(tipo==='empresa')return`<div class="avatar av-spring" style="${sz}"><i class="ti ti-building" style="font-size:13px"></i></div>`; if(tipo==='generico')return`<div class="avatar av-dim" style="${sz}"><i class="ti ti-user" style="font-size:13px"></i></div>`; const ini=(nombre||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase(); return`<div class="avatar av-gold" style="${sz}">${ini}</div>` }
 function getSaldoCliente(id){ return STATE.pedidos.filter(p=>p.clienteId===id&&!p.pagado).reduce((a,p)=>a+Number(p.monto||0),0) }
 function getSaldoEmpresa(id){ return STATE.pedidos.filter(p=>p.empresaId===id&&!p.pagado).reduce((a,p)=>a+Number(p.monto||0),0) }
-function getMes(){ return parseInt(g('sel-mes')?.value)||new Date().getMonth()+1 }
-function getAnio(){ return parseInt(g('sel-anio')?.value)||new Date().getFullYear() }
+function getMes(){ return parseInt(g('sel-mes') && g('sel-mes').value)||new Date().getMonth()+1 }
+function getAnio(){ return parseInt(g('sel-anio') && g('sel-anio').value)||new Date().getFullYear() }
 function pedidosMes(){ const m=getMes(),y=getAnio(); return STATE.pedidos.filter(p=>{ const d=new Date(p.fecha+'T12:00:00'); return d.getFullYear()===y&&d.getMonth()+1===m }) }
 function toast(msg,ok=true){ const t=g('toast'); t.textContent=msg; t.style.borderColor=ok?'rgba(48,209,88,.3)':'rgba(255,69,58,.3)'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500) }
 function clean(o){ return JSON.parse(JSON.stringify(o,(k,v)=>v===undefined?null:v)) }
@@ -659,7 +659,7 @@ function initListeners(){
 function navTo(page){
   currentPage=page
   document.querySelectorAll('.page').forEach(el=>el.classList.add('hidden'))
-  g('page-'+page)?.classList.remove('hidden')
+  const _p=g('page-'+page); if(_p) _p.classList.remove('hidden')
   document.querySelectorAll('.sb-btn').forEach(b=>b.classList.toggle('active',b.dataset.page===page))
   document.querySelectorAll('.bnav-item').forEach(b=>{
     const a=b.dataset.page===page; b.classList.toggle('active',a)
@@ -780,9 +780,9 @@ window.editarPedido=id=>{const p=STATE.pedidos.find(x=>x.id===id);if(p)openModal
 
 // ── PEDIDOS PAGE ──
 function renderPedidos(){
-  const q=g('search-pedidos')?.value?.toLowerCase()||''
-  const ft=g('filtro-turno')?.value||''
-  const fe=g('filtro-estado')?.value||''
+  const q=g('search-pedidos') ? g('search-pedidos').value.toLowerCase() : ''
+  const ft=g('filtro-turno') ? g('filtro-turno').value : ''
+  const fe=g('filtro-estado') ? g('filtro-estado').value : ''
   const filtrados=STATE.pedidos.filter(p=>{
     if(ft&&p.turno!==ft)return false
     if(fe&&estadoPago(p)!==fe)return false
@@ -808,13 +808,13 @@ function renderPedidos(){
 }
 
 window.borrarPedido=async id=>{if(confirm('¿Eliminar este pedido?')){await deleteDoc(doc(db,'pedidos',id));toast('Pedido eliminado')}}
-g('search-pedidos')?.addEventListener('input',renderPedidos)
-g('filtro-turno')?.addEventListener('change',renderPedidos)
-g('filtro-estado')?.addEventListener('change',renderPedidos)
+const _sp=g('search-pedidos'); if(_sp) _sp.addEventListener('input',renderPedidos)
+const _ft=g('filtro-turno'); if(_ft) _ft.addEventListener('change',renderPedidos)
+const _fe=g('filtro-estado'); if(_fe) _fe.addEventListener('change',renderPedidos)
 
 // ── CLIENTES PAGE ──
 function renderClientes(){
-  const q=g('search-clientes')?.value?.toLowerCase()||''
+  const q=g('search-clientes') ? g('search-clientes').value.toLowerCase() : ''
   const filtrados=STATE.clientes.filter(c=>c.nombre?.toLowerCase().includes(q))
   g('clientes-empty').classList.toggle('hidden',filtrados.length>0)
   g('clientes-grid').innerHTML=filtrados.map(c=>{
@@ -847,7 +847,7 @@ function renderClientes(){
   }).join('')
 }
 
-g('search-clientes')?.addEventListener('input',renderClientes)
+const _sc=g('search-clientes'); if(_sc) _sc.addEventListener('input',renderClientes)
 window.editarCliente=id=>{const c=STATE.clientes.find(x=>x.id===id);if(c)openModalCliente(c)}
 window.borrarCliente=async id=>{if(confirm('¿Eliminar cliente?')){await deleteDoc(doc(db,'clientes',id));toast('Cliente eliminado')}}
 
@@ -946,12 +946,12 @@ window.guardarMenu=async()=>{
   const data={fondo:(g('mf-fondo')?.value||'').trim(),refresco:(g('mf-refresco')?.value||'').trim(),extras:(g('mf-extras')?.value||'').trim()}
   if(editandoTurnoMenu==='almuerzo') data.entrada=(g('mf-entrada')?.value||'').trim()
   await setDoc(doc(db,'menus',menuFecha),{[editandoTurnoMenu]:data,fecha:menuFecha},{merge:true})
-  g('menu-modal-overlay')?.remove(); toast('Menú guardado')
+  const _mo=g('menu-modal-overlay'); if(_mo) _mo.remove(); toast('Menú guardado')
 }
 
-g('btn-dia-prev')?.addEventListener('click',()=>{const d=new Date(menuFecha+'T12:00:00');d.setDate(d.getDate()-1);menuFecha=fmtFechaISO(d);renderMenu()})
-g('btn-dia-next')?.addEventListener('click',()=>{const d=new Date(menuFecha+'T12:00:00');d.setDate(d.getDate()+1);menuFecha=fmtFechaISO(d);renderMenu()})
-g('menu-date-pick')?.addEventListener('change',e=>{menuFecha=e.target.value;renderMenu()})
+const _prev=g('btn-dia-prev'); if(_prev) _prev.addEventListener('click',()=>{const d=new Date(menuFecha+'T12:00:00');d.setDate(d.getDate()-1);menuFecha=fmtFechaISO(d);renderMenu()})
+const _next=g('btn-dia-next'); if(_next) _next.addEventListener('click',()=>{const d=new Date(menuFecha+'T12:00:00');d.setDate(d.getDate()+1);menuFecha=fmtFechaISO(d);renderMenu()})
+const _mdp=g('menu-date-pick'); if(_mdp) _mdp.addEventListener('change',e=>{menuFecha=e.target.value;renderMenu()})
 
 // ── PAGOS PAGE ──
 function renderPagos(){
@@ -1082,8 +1082,8 @@ window.togglePagado=()=>{
   toggle.className=`toggle-track ${pagadoToggle?'on':'off'}`
 }
 
-g('pedido-cliente-tipo')?.addEventListener('change',e=>actualizarTipoCliente(e.target.value))
-g('pedido-medio')?.addEventListener('change',actualizarMixto)
+const _pct=g('pedido-cliente-tipo'); if(_pct) _pct.addEventListener('change',e=>actualizarTipoCliente(e.target.value))
+const _pm=g('pedido-medio'); if(_pm) _pm.addEventListener('change',actualizarMixto)
 document.querySelectorAll('.turno-btn').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('.turno-btn').forEach(x=>{x.style.background='transparent';x.style.borderColor='rgba(255,255,255,0.08)';x.style.color='rgba(255,255,255,0.5)'})
   b.style.background='rgba(232,160,32,0.15)';b.style.borderColor='rgba(232,160,32,0.4)';b.style.color='var(--gold)'
@@ -1111,9 +1111,9 @@ g('btn-guardar-pedido').onclick=async()=>{
   closeModal('modal-pedido')
 }
 
-g('btn-nuevo-pedido-dash')?.onclick=()=>openModalPedido()
-g('btn-nuevo-pedido')?.onclick=()=>openModalPedido()
-g('modal-pedido-close')?.onclick=()=>closeModal('modal-pedido')
+const _bnpd=g('btn-nuevo-pedido-dash'); if(_bnpd) _bnpd.onclick=()=>openModalPedido()
+const _bnp=g('btn-nuevo-pedido'); if(_bnp) _bnp.onclick=()=>openModalPedido()
+const _mpc=g('modal-pedido-close'); if(_mpc) _mpc.onclick=()=>closeModal('modal-pedido')
 
 // ── MODAL CLIENTE ──
 function openModalCliente(c=null){
@@ -1125,7 +1125,7 @@ function openModalCliente(c=null){
   openModal('modal-cliente')
 }
 
-g('btn-nuevo-cliente')?.onclick=()=>openModalCliente()
+const _bnc=g('btn-nuevo-cliente'); if(_bnc) _bnc.onclick=()=>openModalCliente()
 g('btn-guardar-cliente').onclick=async()=>{
   const nombre=g('cliente-nombre').value.trim()
   if(!nombre){toast('Ingresa un nombre',false);return}
@@ -1147,7 +1147,7 @@ function openModalEmpresa(e=null){
   openModal('modal-empresa')
 }
 
-g('btn-nueva-empresa')?.onclick=()=>openModalEmpresa()
+const _bne=g('btn-nueva-empresa'); if(_bne) _bne.onclick=()=>openModalEmpresa()
 g('btn-guardar-empresa').onclick=async()=>{
   const nombre=g('empresa-nombre').value.trim()
   if(!nombre){toast('Ingresa el nombre',false);return}
@@ -1158,7 +1158,7 @@ g('btn-guardar-empresa').onclick=async()=>{
 }
 
 // ── PDF ──
-g('btn-pdf')?.onclick=()=>generarPDF()
+const _bpdf=g('btn-pdf'); if(_bpdf) _bpdf.onclick=()=>generarPDF()
 function generarPDF(){
   const script=document.createElement('script')
   script.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
