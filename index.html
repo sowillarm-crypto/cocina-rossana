@@ -23,12 +23,25 @@
   --gray-50:#F9FAFB;--gray-100:#F3F4F6;--gray-200:#E5E7EB;
   --gray-300:#D1D5DB;--gray-400:#9CA3AF;--gray-500:#6B7280;
   --gray-600:#4B5563;--gray-700:#374151;--gray-800:#1F2937;--gray-900:#111827;
+  --bg-main:#F9FAFB;--bg-card:#ffffff;--bg-sidebar:#ffffff;--bg-topbar:#ffffff;
+  --text-main:#111827;--text-muted:#6B7280;
   --border:#E5E7EB;--shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06);
   --shadow-md:0 4px 6px rgba(0,0,0,.07),0 2px 4px rgba(0,0,0,.06);
   --shadow-lg:0 10px 15px rgba(0,0,0,.07),0 4px 6px rgba(0,0,0,.05);
   --radius:12px;--radius-sm:8px;--radius-lg:16px;--radius-xl:20px;
 }
-html,body{height:100%;font-family:'Inter',system-ui,sans-serif;background:var(--gray-50);color:var(--gray-900);-webkit-font-smoothing:antialiased}
+.dark{
+  --gray-50:#0f0f17;--gray-100:#1a1a28;--gray-200:#252535;
+  --gray-300:#333348;--gray-400:#6B7280;--gray-500:#9CA3AF;
+  --gray-600:#D1D5DB;--gray-700:#E5E7EB;--gray-800:#F3F4F6;--gray-900:#F9FAFB;
+  --bg-main:#0a0a0f;--bg-card:#13131e;--bg-sidebar:#0f0f17;--bg-topbar:#0f0f17;
+  --text-main:#F9FAFB;--text-muted:#9CA3AF;
+  --border:rgba(255,255,255,0.08);
+  --shadow:0 1px 3px rgba(0,0,0,0.4);--shadow-md:0 4px 6px rgba(0,0,0,0.4);--shadow-lg:0 10px 15px rgba(0,0,0,0.5);
+  --gold-bg:rgba(212,130,10,0.15);--green-bg:rgba(22,163,74,0.12);--red-bg:rgba(220,38,38,0.12);
+  --blue-bg:rgba(37,99,235,0.12);--orange-bg:rgba(234,88,12,0.12);--purple-bg:rgba(124,58,237,0.12);
+}
+html,body{height:100%;font-family:'Inter',system-ui,sans-serif;background:var(--bg-main);color:var(--text-main);-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:2px}
@@ -50,9 +63,10 @@ button,input,select,textarea{font-family:inherit}
 
 /* ── APP SHELL ── */
 #main-app{display:flex;height:100vh;overflow:hidden}
+#content{flex:1;overflow-y:auto;background:var(--gray-50);width:100%}
 
 /* ── SIDEBAR ── */
-#sidebar{width:64px;background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:0;transition:width .25s cubic-bezier(.4,0,.2,1);overflow:hidden;flex-shrink:0;z-index:100}
+#sidebar{width:64px;background:var(--bg-sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:0;transition:width .25s cubic-bezier(.4,0,.2,1);overflow:hidden;flex-shrink:0;z-index:100;position:relative}
 #sidebar:hover{width:220px}
 .sb-top{padding:16px 0;width:100%;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--border);margin-bottom:8px;min-height:64px}
 .sb-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--gold-light),var(--gold));border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -82,7 +96,7 @@ button,input,select,textarea{font-family:inherit}
 #main-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
 
 /* ── TOPBAR ── */
-#topbar{background:#fff;border-bottom:1px solid var(--border);height:60px;display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0;box-shadow:var(--shadow)}
+#topbar{background:var(--bg-topbar);border-bottom:1px solid var(--border);height:60px;display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0;box-shadow:var(--shadow)}
 .tb-title{font-size:18px;font-weight:700;color:var(--gray-900);letter-spacing:-.02em}
 .tb-sub{font-size:12px;color:var(--gray-400);font-weight:400}
 .tb-right{margin-left:auto;display:flex;align-items:center;gap:8px}
@@ -90,17 +104,17 @@ button,input,select,textarea{font-family:inherit}
 .tb-sel:focus{outline:none;border-color:var(--gold)}
 .btn-primary{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
 .btn-primary:hover{background:var(--gold-light)}
-.btn-secondary{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:#fff;color:var(--gray-700);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s}
+.btn-secondary{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:var(--bg-card);color:var(--gray-700);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s}
 .btn-secondary:hover{background:var(--gray-50);border-color:var(--gray-300)}
 .btn-danger{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:var(--red-bg);color:var(--red);border:1.5px solid #FECACA;border-radius:var(--radius-sm);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
 .btn-danger:hover{background:#FEE2E2}
-.btn-icon{width:32px;height:32px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;border:1.5px solid var(--border);background:#fff;color:var(--gray-500);cursor:pointer;font-size:14px;transition:all .15s}
+.btn-icon{width:32px;height:32px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;border:1.5px solid var(--border);background:var(--bg-card);color:var(--gray-500);cursor:pointer;font-size:14px;transition:all .15s}
 .btn-icon:hover{background:var(--gray-100);color:var(--gray-800)}
 .dev-tag{font-size:10px;color:var(--gray-400);font-style:italic}
 .dev-tag span{color:var(--gold);font-style:normal;font-weight:600}
 
 /* ── CONTENT ── */
-#content{flex:1;overflow-y:auto;background:var(--gray-50)}
+#content{flex:1;overflow-y:auto;background:var(--bg-main)}
 .page{padding:24px;max-width:1200px}
 .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;gap:12px;flex-wrap:wrap}
 .page-title{font-size:22px;font-weight:800;color:var(--gray-900);letter-spacing:-.03em}
@@ -129,7 +143,7 @@ button,input,select,textarea{font-family:inherit}
 
 /* ── TURNO STRIP ── */
 .turno-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
-.turno-tab{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:14px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
+.turno-tab{background:var(--bg-card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:14px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
 .turno-tab:hover{border-color:var(--gray-300);box-shadow:var(--shadow)}
 .turno-tab.active{border-color:currentColor;box-shadow:var(--shadow-md)}
 .turno-tab.t-des{--tc:#D97706}.turno-tab.t-alm{--tc:#D4820A}.turno-tab.t-cen{--tc:#7C3AED}
@@ -153,7 +167,7 @@ button,input,select,textarea{font-family:inherit}
 @media(min-width:900px){.three-col{grid-template-columns:280px 1fr}}
 
 /* ── CARDS ── */
-.card{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:18px;box-shadow:var(--shadow)}
+.card{background:var(--bg-card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:18px;box-shadow:var(--shadow)}
 .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .card-title{font-size:14px;font-weight:700;color:var(--gray-800);display:flex;align-items:center;gap:6px}
 .card-title i{color:var(--gold);font-size:16px}
@@ -171,7 +185,7 @@ button,input,select,textarea{font-family:inherit}
 .chip-mx{background:var(--orange-bg);color:var(--orange)}
 
 /* ── ROWS ── */
-.row-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;cursor:pointer;transition:all .15s;background:#fff}
+.row-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;cursor:pointer;transition:all .15s;background:var(--bg-card)}
 .row-item:last-child{margin-bottom:0}
 .row-item:hover{border-color:var(--gold);background:var(--gold-bg)}
 .row-left{display:flex;align-items:center;gap:10px}
@@ -187,7 +201,7 @@ button,input,select,textarea{font-family:inherit}
 /* ── TABLE ── */
 .tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:12px}
-thead{background:var(--gray-50)}
+thead{background:var(--bg-main)}
 th{font-size:10px;font-weight:600;color:var(--gray-500);text-align:left;padding:8px 12px;border-bottom:1.5px solid var(--border);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
 td{padding:10px 12px;border-bottom:1px solid var(--gray-100);color:var(--gray-700);vertical-align:middle}
 tr:last-child td{border-bottom:none}
@@ -196,7 +210,7 @@ tbody tr:hover td{background:var(--gray-50)}
 .td-sub{font-size:10px;color:var(--gray-400)}
 
 /* ── FORM ── */
-.field{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;color:var(--gray-800);width:100%;outline:none;transition:border-color .15s}
+.field{background:var(--bg-card);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;color:var(--gray-800);width:100%;outline:none;transition:border-color .15s}
 .field:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,130,10,0.1)}
 .field::placeholder{color:var(--gray-400)}
 select.field option{background:#fff;color:var(--gray-800)}
@@ -209,7 +223,7 @@ select.field option{background:#fff;color:var(--gray-800)}
 
 /* ── MODAL ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px}
-.modal{background:#fff;border-radius:var(--radius-xl);width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.15);animation:modalIn .2s ease}
+.modal{background:var(--bg-card);border-radius:var(--radius-xl);width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.15);animation:modalIn .2s ease}
 @keyframes modalIn{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
 .modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 22px 16px;border-bottom:1px solid var(--border)}
 .modal-title{font-size:16px;font-weight:700;color:var(--gray-900);letter-spacing:-.02em}
@@ -261,7 +275,7 @@ select.field option{background:#fff;color:var(--gray-800)}
 .menu-nav-date{flex:1;text-align:center;font-size:15px;font-weight:700;color:var(--gray-800)}
 .menu-cards{display:grid;grid-template-columns:1fr;gap:14px}
 @media(min-width:700px){.menu-cards{grid-template-columns:repeat(3,1fr)}}
-.menu-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:18px;box-shadow:var(--shadow)}
+.menu-card{background:var(--bg-card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:18px;box-shadow:var(--shadow)}
 .menu-tag{font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;display:inline-block;margin-bottom:5px}
 
 /* ── CHART ── */
@@ -285,7 +299,7 @@ select.field option{background:#fff;color:var(--gray-800)}
 .bnav-item span{font-size:9px;font-weight:600}
 
 /* ── CLIENT CARDS ── */
-.client-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:18px;box-shadow:var(--shadow);transition:all .15s}
+.client-card{background:var(--bg-card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:18px;box-shadow:var(--shadow);transition:all .15s}
 .client-card:hover{box-shadow:var(--shadow-md);border-color:var(--gray-300)}
 .stat-mini{text-align:center}
 .stat-mini-val{font-size:16px;font-weight:800;color:var(--gray-800)}
@@ -386,7 +400,8 @@ select.field option{background:#fff;color:var(--gray-800)}
         <select id="sel-anio" class="tb-sel"></select>
         <button class="btn-secondary" id="btn-pdf"><i class="ti ti-file-type-pdf"></i> PDF</button>
         <button class="btn-primary" id="btn-nuevo-pedido"><i class="ti ti-plus"></i> Nuevo pedido</button>
-        <div class="dev-tag hidden-mobile">dev. <span>Erick Solier</span></div>
+        <button id="btn-dark" title="Modo oscuro" style="width:32px;height:32px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--bg-card);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s"><i class="ti ti-moon" id="dark-icon"></i></button>
+      <div class="dev-tag" style="display:none;font-size:10px;color:var(--gray-400)">dev. <span style="color:var(--gold);font-weight:600">Erick Solier</span></div>
       </div>
     </div>
 
@@ -1046,7 +1061,7 @@ function renderMenu(){
       ${tm?`
         <div style="display:flex;flex-direction:column;gap:8px">
           ${tm.entrada?`<div><span class="menu-tag" style="background:${t.bg};color:${t.color}">Entrada</span><div style="font-size:13px;color:var(--gray-700);margin-top:4px">${tm.entrada}</div></div>`:''}
-          ${tm.platos&&tm.platos.length?tm.platos.map((pl,i)=>`<div><span class="menu-tag" style="background:${t.bg};color:${t.color}">Plato ${tm.platos.length>1?i+1:''}</span><div style="font-size:13px;color:var(--gray-700);margin-top:4px">${pl}</div></div>`).join(''):(tm.fondo?`<div><span class="menu-tag" style="background:${t.bg};color:${t.color}">Plato</span><div style="font-size:13px;color:var(--gray-700);margin-top:4px">${tm.fondo}</div></div>`:'')}
+          ${(()=>{const pls=tm.platos&&tm.platos.length?tm.platos:(tm.fondo?tm.fondo.split(' / ').map(s=>s.trim()).filter(Boolean):[]);return pls.length?`<div><span class="menu-tag" style="background:${t.bg};color:${t.color}">Plato${pls.length>1?'s':''}</span><div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">${pls.map(pl=>`<span style="background:var(--gray-100);color:var(--gray-700);font-size:12px;font-weight:500;padding:3px 10px;border-radius:20px;border:1px solid var(--border)">${pl}</span>`).join('')}</div></div>`:''})()}
           ${tm.refresco?`<div><span class="menu-tag" style="background:${t.bg};color:${t.color}">Bebida</span><div style="font-size:13px;color:var(--gray-700);margin-top:4px">${tm.refresco}</div></div>`:''}
           ${tm.extras?`<div><span class="menu-tag" style="background:var(--gray-100);color:var(--gray-500)">Extras</span><div style="font-size:12px;color:var(--gray-500);margin-top:4px">${tm.extras}</div></div>`:''}
         </div>
@@ -1177,12 +1192,16 @@ g('btn-guardar-abono').onclick=async()=>{
   const {id,tipo}=abonarTarget
   const pend=S.pedidos.filter(p=>(tipo==='cliente'?p.clienteId===id:p.empresaId===id)&&!p.pagado).sort((a,b)=>a.fecha.localeCompare(b.fecha))
   let rest=monto
+  const updates=[]
   for(const p of pend){
     if(rest<=0)break
-    if(rest>=Number(p.monto)){await updateDoc(doc(db,'pedidos',p.id),{pagado:true});rest-=Number(p.monto)}
+    if(rest>=Number(p.monto)){updates.push(updateDoc(doc(db,'pedidos',p.id),{pagado:true}));rest-=Number(p.monto)}
   }
+  await Promise.all(updates)
   await addDoc(collection(db,'pagos'),{...(tipo==='cliente'?{clienteId:id}:{empresaId:id}),monto,medio:g('mab-medio').value,fecha:isoHoy(),creadoEn:serverTimestamp()})
-  closeModal('modal-abonar'); toast('Abono registrado')
+  const saldoRestante=(tipo==='cliente'?saldoCliente(id):saldoEmpresa(id))-monto
+  closeModal('modal-abonar')
+  toast(saldoRestante>0?`Abono registrado · Saldo restante: ${fmtMoney(Math.max(0,saldoRestante))}`:'Cuenta saldada completamente')
 }
 
 // ── AJUSTES ──
@@ -1364,6 +1383,19 @@ function generarPDF(){
 // ── MODAL CLOSE ON OVERLAY ──
 document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.add('hidden')}))
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal-overlay:not(.hidden)').forEach(m=>m.classList.add('hidden'))})
+
+// Dark mode
+const darkBtn=g('btn-dark')
+let isDark=localStorage.getItem('rossana-dark')==='1'
+function applyDark(d){
+  document.documentElement.classList.toggle('dark',d)
+  const ic=g('dark-icon')
+  if(ic){ ic.className=d?'ti ti-sun':'ti ti-moon' }
+  darkBtn.title=d?'Modo claro':'Modo oscuro'
+  localStorage.setItem('rossana-dark',d?'1':'0')
+}
+applyDark(isDark)
+if(darkBtn) darkBtn.onclick=()=>{ isDark=!isDark; applyDark(isDark) }
 
 navTo('dashboard')
 </script>
