@@ -828,7 +828,7 @@ function renderDashboard(){
         <div class="turno-icon" style="color:${t.color}"><i class="ti ${k==='desayuno'?'ti-coffee':k==='almuerzo'?'ti-salad':'ti-moon'}"></i></div>
         <div><div class="turno-name">${t.label}</div><div class="turno-hora">${t.hora}</div></div>
       </div>
-      <div class="turno-platos">${m&&m.fondo?`<span class="t-chip">${m.fondo}</span>`:''}</div>
+      <div class="turno-platos">${m&&(m.platos||m.fondo)?`${(m.platos&&m.platos.length?m.platos:[m.fondo]).map(pl=>`<span class="t-chip">${pl}</span>`).join('')}`:''}</div>
       ${cnt>0?`<div class="turno-cnt">${cnt} pedido${cnt!==1?'s':''} hoy</div>`:''}
     </div>`
   }).join('')
@@ -838,7 +838,7 @@ function renderDashboard(){
   g('pedidos-hoy-list').innerHTML=phoy.length===0
     ?`<div class="empty" style="padding:24px"><div class="empty-icon"><i class="ti ti-clipboard-list"></i></div><p>Sin pedidos en este turno</p></div>`
     :phoy.map(p=>`<div class="row-item">
-      <div class="row-left">${avatar(nombre(p),tipo(p))}<div><div class="row-name">${nombre(p)}</div><div class="row-sub">${p.plato||''}</div></div></div>
+      <div class="row-left">${avatar(nombre(p),tipo(p))}<div><div class="row-name">${nombre(p)}</div><div class="row-sub">${p.plato||''}${p.notas?`<span style="color:var(--orange);margin-left:4px" title="${p.notas}"><i class="ti ti-message-circle" style="font-size:10px"></i> ${p.notas}</span>`:''}</div></div></div>
       <div style="display:flex;align-items:center;gap:6px">${chipMedio(p.medio)}<span style="font-size:13px;font-weight:700;color:var(--gray-800)">${fmtMoney(p.monto)}</span>${badge(estadoPago(p))}
       ${!p.pagado?`<button class="btn-icon" onclick="pagarP('${p.id}')" title="Marcar pagado" style="color:var(--green)"><i class="ti ti-check"></i></button>`:''}
       <button class="btn-icon" onclick="editP('${p.id}')"><i class="ti ti-edit"></i></button></div>
@@ -883,7 +883,7 @@ function renderDashboard(){
   g('ultimos-tbody').innerHTML=ult.map(p=>`<tr>
     <td><div class="td-name">${nombre(p)}</div><div class="td-sub">${fmtFecha(p.fecha)}</div></td>
     <td>${badgeTurno(p.turno)}</td>
-    <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--gray-700)">${p.plato||'—'}</td>
+    <td style="max-width:130px;color:var(--gray-700)"><div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.plato||'—'}</div>${p.notas?`<div style="font-size:10px;color:var(--orange);margin-top:1px"><i class="ti ti-message-circle" style="font-size:9px"></i> ${p.notas}</div>`:''}</td>
     <td>${chipMedio(p.medio)}</td>
     <td style="font-weight:700;color:var(--gray-800)">${fmtMoney(p.monto)}</td>
     <td>${badge(estadoPago(p))}</td>
@@ -937,7 +937,7 @@ function renderPedidos(){
     <td><div class="td-name">${nombre(p)}</div><div class="td-sub">${tipo(p)}</div></td>
     <td style="color:var(--gray-500);font-size:12px">${fmtFecha(p.fecha)}</td>
     <td>${badgeTurno(p.turno)}</td>
-    <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.plato||'—'}</td>
+    <td style="max-width:120px;color:var(--gray-700)"><div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.plato||'—'}</div>${p.notas?`<div style="font-size:10px;color:var(--orange)"><i class="ti ti-message-circle" style="font-size:9px"></i> ${p.notas}</div>`:''}</td>
     <td>${chipMedio(p.medio)}</td>
     <td style="font-weight:700;color:var(--gray-800)">${fmtMoney(p.monto)}</td>
     <td>${badge(estadoPago(p))}</td>
@@ -1046,7 +1046,7 @@ function renderMenu(){
       ${tm?`
         <div style="display:flex;flex-direction:column;gap:8px">
           ${tm.entrada?`<div><span class="menu-tag" style="background:${t.bg};color:${t.color}">Entrada</span><div style="font-size:13px;color:var(--gray-700);margin-top:4px">${tm.entrada}</div></div>`:''}
-          ${tm.fondo?`<div><span class="menu-tag" style="background:${t.bg};color:${t.color}">Plato</span><div style="font-size:13px;color:var(--gray-700);margin-top:4px">${tm.fondo}</div></div>`:''}
+          ${tm.platos&&tm.platos.length?tm.platos.map((pl,i)=>`<div><span class="menu-tag" style="background:${t.bg};color:${t.color}">Plato ${tm.platos.length>1?i+1:''}</span><div style="font-size:13px;color:var(--gray-700);margin-top:4px">${pl}</div></div>`).join(''):(tm.fondo?`<div><span class="menu-tag" style="background:${t.bg};color:${t.color}">Plato</span><div style="font-size:13px;color:var(--gray-700);margin-top:4px">${tm.fondo}</div></div>`:'')}
           ${tm.refresco?`<div><span class="menu-tag" style="background:${t.bg};color:${t.color}">Bebida</span><div style="font-size:13px;color:var(--gray-700);margin-top:4px">${tm.refresco}</div></div>`:''}
           ${tm.extras?`<div><span class="menu-tag" style="background:var(--gray-100);color:var(--gray-500)">Extras</span><div style="font-size:12px;color:var(--gray-500);margin-top:4px">${tm.extras}</div></div>`:''}
         </div>
@@ -1067,6 +1067,9 @@ let editandoTurnoMenu=null
 window.editMenu=turno=>{
   editandoTurnoMenu=turno
   const t=TURNOS[turno], m=S.menus[menuFecha]?.[turno]||{}
+  // Initialize platos from existing menu
+  const platosList = m.platos && m.platos.length ? m.platos : (m.fondo ? m.fondo.split(' / ').map(s=>s.trim()).filter(Boolean) : [''])
+  
   const overlay=document.createElement('div')
   overlay.className='modal-overlay'; overlay.id='menu-modal-ov'
   overlay.innerHTML=`<div class="modal">
@@ -1076,7 +1079,13 @@ window.editMenu=turno=>{
     </div>
     <div class="modal-body">
       ${turno==='almuerzo'?`<div class="form-group"><span class="field-label">Entrada</span><input class="field" id="mf-entrada" value="${m.entrada||''}" placeholder="Sopa de verduras…"/></div>`:''}
-      <div class="form-group"><span class="field-label">${turno==='desayuno'?'Platos (caldos, segundos…)':'Plato de fondo'}</span><input class="field" id="mf-fondo" value="${m.fondo||''}" placeholder="Lomo saltado, caldo de gallina…"/></div>
+      <div class="form-group">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <span class="field-label" style="margin-bottom:0">${turno==='desayuno'?'Platos del día':'Platos de fondo'}</span>
+          <button type="button" onclick="addPlatoField()" style="font-size:11px;color:var(--gold);background:var(--gold-bg);border:1px solid #FDE68A;border-radius:6px;padding:3px 9px;cursor:pointer;font-family:inherit;font-weight:600"><i class="ti ti-plus" style="font-size:10px"></i> Agregar plato</button>
+        </div>
+        <div id="mf-platos-list"></div>
+      </div>
       <div class="form-group"><span class="field-label">${turno==='desayuno'?'Bebidas':'Refresco / bebida'}</span><input class="field" id="mf-refresco" value="${m.refresco||''}" placeholder="Chicha morada, café, limonada…"/></div>
       <div class="form-group"><span class="field-label">Extras (opcional)</span><input class="field" id="mf-extras" value="${m.extras||''}" placeholder="Pan, postre…"/></div>
       <div class="modal-footer">
@@ -1086,12 +1095,25 @@ window.editMenu=turno=>{
     </div>
   </div>`
   document.body.appendChild(overlay)
+  // Populate platos fields after DOM insertion
+  setTimeout(()=>{ platosList.forEach(v=>window.addPlatoField(v)) },0)
 }
 window.guardarMenu=async()=>{
-  const data={fondo:(g('mf-fondo')?.value||'').trim(),refresco:(g('mf-refresco')?.value||'').trim(),extras:(g('mf-extras')?.value||'').trim()}
+  const platos=[...document.querySelectorAll('.mf-plato-input')].map(i=>i.value.trim()).filter(Boolean)
+  const data={fondo:platos.join(' / '),refresco:(g('mf-refresco')?.value||'').trim(),extras:(g('mf-extras')?.value||'').trim()}
   if(editandoTurnoMenu==='almuerzo') data.entrada=(g('mf-entrada')?.value||'').trim()
+  data.platos=platos
   await setDoc(doc(db,'menus',menuFecha),{[editandoTurnoMenu]:data,fecha:menuFecha},{merge:true})
   const ov=g('menu-modal-ov'); if(ov) ov.remove(); toast('Menú guardado')
+}
+window.addPlatoField=(val='')=>{
+  const list=g('mf-platos-list'); if(!list)return
+  const wrap=document.createElement('div')
+  wrap.style.cssText='display:flex;gap:6px;margin-bottom:6px;align-items:center'
+  wrap.innerHTML=`<input class="field mf-plato-input" value="${val}" placeholder="Ej: Lomo saltado, Caldo de gallina…" style="flex:1"/>
+    <button type="button" onclick="this.parentElement.remove()" style="width:32px;height:38px;border:1.5px solid #FECACA;background:#FEF2F2;border-radius:8px;cursor:pointer;color:#DC2626;flex-shrink:0;font-size:14px">×</button>`
+  list.appendChild(wrap)
+  wrap.querySelector('input').focus()
 }
 
 const dp=g('btn-dia-prev'); if(dp) dp.onclick=()=>{const d=new Date(menuFecha+'T12:00:00');d.setDate(d.getDate()-1);menuFecha=d.toISOString().split('T')[0];renderMenu()}
@@ -1202,8 +1224,15 @@ function openModalPedido(p=null){
 
   // Platos datalist
   const platos=new Set()
-  Object.values(S.menus).forEach(m=>Object.values(m).forEach(tm=>{if(tm&&typeof tm==='object'){if(tm.fondo)platos.add(tm.fondo);if(tm.entrada)platos.add(tm.entrada);if(tm.refresco)platos.add(tm.refresco)}}))
-  g('platos-datalist').innerHTML=[...platos].map(pl=>`<option value="${pl}">`).join('')
+  Object.values(S.menus).forEach(m=>Object.values(m).forEach(tm=>{
+    if(tm&&typeof tm==='object'){
+      if(tm.platos&&Array.isArray(tm.platos)) tm.platos.forEach(p=>platos.add(p))
+      else if(tm.fondo) tm.fondo.split(' / ').forEach(p=>platos.add(p.trim()))
+      if(tm.entrada) platos.add(tm.entrada)
+      if(tm.refresco) platos.add(tm.refresco)
+    }
+  }))
+  g('platos-datalist').innerHTML=[...platos].filter(Boolean).map(pl=>`<option value="${pl}">`).join('')
 
   g('mp-plato').value=p?.plato||''
   g('mp-medio').value=p?.medio||'Efectivo'
