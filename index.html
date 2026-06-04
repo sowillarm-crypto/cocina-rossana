@@ -620,7 +620,6 @@ const ALLOWED=['sowill.arm@gmail.com','chilisolier011@gmail.com']
 const TR={desayuno:{l:'Desayuno',h:'6:00 – 11:30 am',c:'#D97706'},almuerzo:{l:'Almuerzo',h:'12:00 – 3:00 pm',c:'#D4820A'},cena:{l:'Cena',h:'6:00 – 9:00 pm',c:'#7C3AED'}}
 const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
 const TITLES={dashboard:'Dashboard',pedidos:'Pedidos',clientes:'Clientes',empresas:'Empresas',menu:'Menú del día',pagos:'Cobros y pagos',ajustes:'Ajustes'}
-const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
 const fb=initializeApp({apiKey:"AIzaSyBFFNShVcH4mFJMKHumWq_BZapJ4tOJ2QE",authDomain:"restaurante---rossana.firebaseapp.com",projectId:"restaurante---rossana",storageBucket:"restaurante---rossana.firebasestorage.app",messagingSenderId:"171874268788",appId:"1:171874268788:web:0f8b152c2e4e7cc3f9c321"})
 const auth=getAuth(fb),db=getFirestore(fb),gp=new GoogleAuthProvider()
 let S={clientes:[],empresas:[],pedidos:[],menus:{}},eId={p:null,cl:null,em:null},abTgt=null,pagOn=false,tAct='almuerzo',mFecha=hoy(),curPage='dashboard'
