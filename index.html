@@ -689,7 +689,7 @@ function updDD(t){
   const pls=new Set()
   Object.values(S.menus).forEach(m=>{const tm=m[t];if(!tm)return;if(tm.platos?.length)tm.platos.forEach(p=>{if(p)pls.add(p)});else if(tm.fondo)tm.fondo.split(' / ').forEach(p=>{if(p.trim())pls.add(p.trim())})})
   const dd=g('mp-dd');if(!dd)return
-  dd.innerHTML=[...pls].map(pl=>`<div onclick="selPl(event,'${pl.replace(/\/g,'\\').replace(/'/g,"\'")}')" style="padding:10px 14px;cursor:pointer;font-size:13px;color:var(--c-tx);transition:background .1s" onmouseover="this.style.background='var(--c-surf2)'" onmouseout="this.style.background=''">${pl}</div>`).join('')
+  dd.innerHTML=[...pls].map(pl=>{const safe=pl.replace(/&/g,'&amp;').replace(/'/g,'&#39;');return`<div onclick="selPl(event,'${safe}')" style="padding:10px 14px;cursor:pointer;font-size:13px;color:var(--c-tx);transition:background .1s" onmouseover="this.style.background='var(--c-surf2)'" onmouseout="this.style.background=''">${pl}</div>`}).join('')
 }
 window.selPl=(e,pl)=>{e.preventDefault();e.stopPropagation();g('mp-pl').value=pl;g('mp-dd').style.display='none'}
 g('mp-pl')?.addEventListener('focus',()=>{const dd=g('mp-dd');if(dd&&dd.children.length)dd.style.display='block'})
