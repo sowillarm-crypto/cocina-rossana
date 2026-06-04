@@ -57,16 +57,16 @@ button,input,select,textarea{font-family:inherit;color:inherit}
 #sidebar{
   width:var(--sb);min-width:var(--sb);max-width:var(--sb);
   background:var(--bg);border-right:1px solid var(--border-soft);
-  display:flex;flex-direction:column;align-items:center;
-  padding:14px 8px 14px;gap:4px;overflow:hidden;flex-shrink:0;
+  display:flex;flex-direction:column;align-items:stretch;
+  justify-content:flex-start;
+  padding:12px 8px;gap:3px;overflow:hidden;flex-shrink:0;
   transition:width var(--ease),min-width var(--ease),max-width var(--ease);
   z-index:50;
 }
 #sidebar.open{width:210px;min-width:210px;max-width:210px}
 .sb-hdr{
   width:100%;display:flex;align-items:center;justify-content:center;
-  margin-bottom:10px;gap:0;overflow:hidden;flex-shrink:0;
-  min-height:44px;
+  padding:0 2px;margin-bottom:8px;gap:0;overflow:hidden;flex-shrink:0;height:44px;
 }
 #sidebar.open .sb-hdr{justify-content:flex-start;gap:10px;padding:0 4px}
 .sb-logo{
@@ -80,22 +80,21 @@ button,input,select,textarea{font-family:inherit;color:inherit}
 .sb-bname{font-family:var(--font-display);font-size:12px;color:var(--text);line-height:1.2;white-space:normal;word-break:break-word}
 .sb-bname span{color:var(--accent)}
 .sb-bsub{font-size:10px;color:var(--text-mute)}
-.sb-nav{flex:1;width:100%;display:flex;flex-direction:column;gap:3px;overflow:hidden;padding:0 2px}
+.sb-nav{flex:1;width:100%;display:flex;flex-direction:column;justify-content:flex-start;gap:3px;overflow:hidden;padding:0 2px}
 .sb-btn{
   width:100%;height:42px;border-radius:13px;
   display:flex;align-items:center;justify-content:center;
   gap:0;padding:0;cursor:pointer;border:none;
   background:var(--surface);color:var(--text-dim);
   font-size:16px;white-space:nowrap;overflow:hidden;
-  transition:all .15s;border:1px solid var(--border-soft);
-  min-width:0;
+  transition:all .15s;border:1px solid var(--border-soft);flex-shrink:0;
 }
 #sidebar.open .sb-btn{justify-content:flex-start;padding:0 12px;gap:10px}
 .sb-btn:hover{background:var(--surface-2);color:var(--text)}
 .sb-btn.active{background:var(--surface-2);color:var(--text);border-color:var(--border);box-shadow:inset 0 0 0 1px var(--accent-soft)}
 .sb-btn i{flex-shrink:0;width:18px;text-align:center}
-.sb-lbl{font-size:13px;font-weight:500;color:inherit;opacity:0;transition:opacity var(--ease);overflow:hidden;width:0}
-#sidebar.open .sb-lbl{opacity:1;width:auto}
+.sb-lbl{font-size:13px;font-weight:500;color:inherit;opacity:0;transition:opacity var(--ease);overflow:hidden;max-width:0;transition:opacity var(--ease),max-width var(--ease)}
+#sidebar.open .sb-lbl{opacity:1;max-width:140px}
 .sb-div{flex:1}
 .sb-foot{width:100%;flex-shrink:0;border-top:1px solid var(--border-soft);padding-top:8px;margin-top:4px;padding:8px 2px 0}
 .sb-usr{
@@ -622,7 +621,7 @@ const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','
 const TITLES={dashboard:'Dashboard',pedidos:'Pedidos',clientes:'Clientes',empresas:'Empresas',menu:'Menú del día',pagos:'Cobros y pagos',ajustes:'Ajustes'}
 const fb=initializeApp({apiKey:"AIzaSyBFFNShVcH4mFJMKHumWq_BZapJ4tOJ2QE",authDomain:"restaurante---rossana.firebaseapp.com",projectId:"restaurante---rossana",storageBucket:"restaurante---rossana.firebasestorage.app",messagingSenderId:"171874268788",appId:"1:171874268788:web:0f8b152c2e4e7cc3f9c321"})
 const auth=getAuth(fb),db=getFirestore(fb),gp=new GoogleAuthProvider()
-let S={clientes:[],empresas:[],pedidos:[],menus:{}},eId={p:null,cl:null,em:null},abTgt=null,pagOn=false,tAct='almuerzo',mFecha=hoy(),curPage='dashboard'
+let S={clientes:[],empresas:[],pedidos:[],menus:{},pagos:[]},eId={p:null,cl:null,em:null},abTgt=null,pagOn=false,tAct='almuerzo',mFecha=hoy(),curPage='dashboard'
 const uns=[]
 const g=id=>document.getElementById(id)
 function hoy(){return new Date().toISOString().split('T')[0]}
@@ -636,8 +635,16 @@ function chM(m){const c={Efectivo:'ch-ef',Yape:'ch-yp',Mixto:'ch-mx'};return`<sp
 function nom(p){if(p.empresaId){const e=S.empresas.find(x=>x.id===p.empresaId);return e?e.nombre:'Empresa'}if(p.clienteId){const c=S.clientes.find(x=>x.id===p.clienteId);return c?c.nombre:'Cliente'}return'Cliente'}
 function tp(p){return p.empresaId?'empresa':p.clienteId?'conocido':'generico'}
 function avEl(n,t,lg){const s=lg?'av av-lg':'av';if(t==='empresa')return`<div class="${s} av-gr"><i class="ti ti-building" style="font-size:${lg?16:13}px"></i></div>`;if(t==='generico')return`<div class="${s} av-gy"><i class="ti ti-user" style="font-size:${lg?16:13}px"></i></div>`;const i=(n||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();return`<div class="${s} av-go">${i}</div>`}
-function sCl(id){return S.pedidos.filter(p=>p.clienteId===id&&!p.pagado).reduce((a,p)=>a+Number(p.monto||0),0)}
-function sEm(id){return S.pedidos.filter(p=>p.empresaId===id&&!p.pagado).reduce((a,p)=>a+Number(p.monto||0),0)}
+function sCl(id){
+  const deuda=S.pedidos.filter(p=>p.clienteId===id&&!p.pagado).reduce((a,p)=>a+Number(p.monto||0),0)
+  const abonado=S.pagos.filter(p=>p.clienteId===id).reduce((a,p)=>a+Number(p.monto||0),0)
+  return Math.max(0,deuda-abonado)
+}
+function sEm(id){
+  const deuda=S.pedidos.filter(p=>p.empresaId===id&&!p.pagado).reduce((a,p)=>a+Number(p.monto||0),0)
+  const abonado=S.pagos.filter(p=>p.empresaId===id).reduce((a,p)=>a+Number(p.monto||0),0)
+  return Math.max(0,deuda-abonado)
+}
 function gMes(){return parseInt(g('sel-mes')?.value)||new Date().getMonth()+1}
 function gAnio(){return parseInt(g('sel-anio')?.value)||new Date().getFullYear()}
 function psM(){const m=gMes(),y=gAnio();return S.pedidos.filter(p=>{const d=new Date(p.fecha+'T12:00:00');return d.getFullYear()===y&&d.getMonth()+1===m})}
@@ -699,6 +706,7 @@ function initL(){
   uns.push(onSnapshot(query(collection(db,'empresas'),orderBy('creadoEn','asc')),s=>{S.empresas=s.docs.map(d=>({id:d.id,...d.data()}));renderAll()}))
   uns.push(onSnapshot(query(collection(db,'pedidos'),orderBy('creadoEn','desc')),s=>{S.pedidos=s.docs.map(d=>({id:d.id,...d.data()}));renderAll()}))
   uns.push(onSnapshot(collection(db,'menus'),s=>{S.menus={};s.docs.forEach(d=>{S.menus[d.id]=d.data()});renderAll()}))
+  uns.push(onSnapshot(query(collection(db,'pagos'),orderBy('creadoEn','desc')),s=>{S.pagos=s.docs.map(d=>({id:d.id,...d.data()}));renderAll()}))
 }
 function navTo(page){
   curPage=page
@@ -812,12 +820,31 @@ function rPagos(){
 window.opAb=(id,t,s)=>{abTgt={id,t};g('mab-s').textContent=$m(s);g('mab-mo').value='';g('mab-ti').textContent=`Abonar — ${t==='cliente'?S.clientes.find(x=>x.id===id)?.nombre:S.empresas.find(x=>x.id===id)?.nombre}`;openM('mod-ab')}
 window.pagTodo=async(id,t)=>{const pend=S.pedidos.filter(p=>(t==='cliente'?p.clienteId===id:p.empresaId===id)&&!p.pagado);try{await Promise.all(pend.map(p=>updateDoc(doc(db,'pedidos',p.id),{pagado:true})));toast('Cuenta saldada')}catch(e){toast('Error',false)}}
 g('btn-gab').onclick=async()=>{
-  const monto=Number(g('mab-mo').value);if(!monto||monto<=0){toast('Monto inválido',false);return}
-  if(!abTgt)return;const{id,t}=abTgt
-  const pend=S.pedidos.filter(p=>(t==='cliente'?p.clienteId===id:p.empresaId===id)&&!p.pagado).sort((a,b)=>a.fecha.localeCompare(b.fecha))
+  const monto=Number(g('mab-mo').value)
+  if(!monto||monto<=0){toast('Monto inválido',false);return}
+  if(!abTgt)return
+  const{id,tipo}=abTgt
+  // Saldo efectivo actual (pedidos - pagos ya registrados)
+  const deudaActual=tipo==='cliente'?sCl(id):sEm(id)
+  if(monto>deudaActual+0.01){toast('El abono supera la deuda',false);return}
+  // Marcar pedidos pagados (del más antiguo al más nuevo)
+  const pendAll=S.pedidos.filter(p=>(tipo==='cliente'?p.clienteId===id:p.empresaId===id)&&!p.pagado).sort((a,b)=>a.fecha.localeCompare(b.fecha))
   let rest=monto;const ups=[]
-  for(const p of pend){if(rest<=0)break;if(rest>=Number(p.monto)){ups.push(updateDoc(doc(db,'pedidos',p.id),{pagado:true}));rest-=Number(p.monto)}}
-  try{await Promise.all(ups);await addDoc(collection(db,'pagos'),{...(t==='cliente'?{clienteId:id}:{empresaId:id}),monto,medio:g('mab-me').value,fecha:hoy(),creadoEn:serverTimestamp()});closeM('mod-ab');toast(rest>0?`Abono registrado · Saldo restante: ${$m(Math.max(0,rest))}`:'Cuenta saldada')}catch(e){toast('Error',false)}
+  for(const p of pendAll){
+    if(rest<=0)break
+    if(rest>=Number(p.monto)){ups.push(updateDoc(doc(db,'pedidos',p.id),{pagado:true}));rest-=Number(p.monto)}
+  }
+  try{
+    await Promise.all(ups)
+    // Registrar el pago — sCl/sEm lo descontará automáticamente
+    await addDoc(collection(db,'pagos'),{
+      ...(tipo==='cliente'?{clienteId:id}:{empresaId:id}),
+      monto,medio:g('mab-me').value,fecha:hoy(),creadoEn:serverTimestamp()
+    })
+    const saldoRestante=Math.max(0,deudaActual-monto)
+    closeM('mod-ab')
+    toast(saldoRestante<=0?'Cuenta saldada completamente':`Abono ${$m(monto)} · Saldo restante: ${$m(saldoRestante)}`)
+  }catch(e){toast('Error al registrar abono',false)}
 }
 
 function rAjustes(){
