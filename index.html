@@ -105,8 +105,8 @@ button,input,select,textarea{font-family:inherit;color:inherit}
 }
 #sidebar.open .sb-usr{justify-content:flex-start;padding:0 10px;gap:10px}
 .sb-usr:hover{background:var(--surface)}
-.sb-av{width:32px;height:32px;min-width:32px;border-radius:50%;flex-shrink:0;object-fit:cover;border:2px solid var(--border)}
-.sb-av-ph{width:32px;height:32px;min-width:32px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--accent);flex-shrink:0;border:2px solid rgba(197,247,62,.3)}
+.sb-av{width:32px;height:32px;min-width:32px;border-radius:50%;flex-shrink:0;object-fit:cover;border:2px solid var(--border);display:block}
+.sb-av-ph{width:32px;height:32px;min-width:32px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--accent);flex-shrink:0;border:2px solid rgba(197,247,62,.3);flex-basis:32px}
 .sb-uinfo{overflow:hidden;white-space:nowrap;opacity:0;transition:opacity var(--ease);min-width:0}
 #sidebar.open .sb-uinfo{opacity:1}
 .sb-uname{font-size:12px;font-weight:600;color:var(--text)}
@@ -374,6 +374,18 @@ html:not(.dark) .tb-al i,html:not(.dark) .tb-al span{color:#4d7d00}
 .menu-card-surf{background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--card-radius);padding:var(--pad-card)}
 
 /* ── TOAST ── */
+/* PDF option buttons */
+.pdf-opt{
+  padding:10px 8px;border-radius:12px;border:1.5px solid var(--border-soft);
+  background:var(--surface-2);cursor:pointer;transition:all .15s;
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  font-family:var(--font-sans);
+}
+.pdf-opt i{font-size:18px;color:var(--text-mute)}
+.pdf-opt span{font-size:12px;font-weight:600;color:var(--text-dim)}
+.pdf-opt.active{border-color:var(--accent);background:var(--accent-soft)}
+.pdf-opt.active i,.pdf-opt.active span{color:var(--accent)}
+html:not(.dark) .pdf-opt.active i,html:not(.dark) .pdf-opt.active span{color:#4d7d00}
 #toast{
   position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
   background:var(--surface);color:var(--text);
@@ -496,7 +508,14 @@ html:not(.dark) .tb-al i,html:not(.dark) .tb-al span{color:#4d7d00}
       <!-- PEDIDOS -->
       <div id="page-pedidos" class="page hidden">
         <div class="ph"><div><div class="pt">Pedidos</div><div class="psub" id="p-cnt"></div></div><button class="btn-p" id="btn-np2"><i class="ti ti-plus"></i> Nuevo pedido</button></div>
-        <div class="card" style="margin-bottom:14px;padding:12px 14px"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><div class="sb-x" style="flex:1;min-width:160px"><i class="ti ti-search"></i><input class="field" id="sp" placeholder="Buscar cliente o plato…"/></div><select class="field" id="ft" style="width:auto"><option value="">Todos los turnos</option><option value="desayuno">Desayuno</option><option value="almuerzo">Almuerzo</option><option value="cena">Cena</option></select><select class="field" id="fe" style="width:auto"><option value="">Todos</option><option value="pagado">Pagado</option><option value="pendiente">Pendiente</option><option value="vencido">Vencido</option></select></div></div>
+        <div class="card" style="margin-bottom:14px;padding:12px 14px">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <div class="sb-x" style="flex:1;min-width:160px"><i class="ti ti-search"></i><input class="field" id="sp" placeholder="Buscar cliente o plato…"/></div>
+            <select class="field" id="fd" style="width:auto"><option value="">Todos los días</option></select>
+            <select class="field" id="ft" style="width:auto"><option value="">Todos los turnos</option><option value="desayuno">Desayuno</option><option value="almuerzo">Almuerzo</option><option value="cena">Cena</option></select>
+            <select class="field" id="fe" style="width:auto"><option value="">Todos</option><option value="pagado">Pagado</option><option value="pendiente">Pendiente</option><option value="vencido">Vencido</option></select>
+          </div>
+        </div>
         <div class="card" style="padding:0;overflow:hidden"><div class="tw"><table><thead><tr><th>Cliente</th><th>Fecha</th><th>Turno</th><th>Plato / Nota</th><th>Medio</th><th>Monto</th><th>Estado</th><th></th></tr></thead><tbody id="pt"></tbody></table></div><div id="p-empty" class="empty hidden"><div class="ei"><i class="ti ti-clipboard-list"></i></div><p>Sin pedidos que coincidan</p></div></div>
       </div>
 
@@ -564,6 +583,15 @@ html:not(.dark) .tb-al i,html:not(.dark) .tb-al span{color:#4d7d00}
 <div id="mod-p" class="mo hidden"><div class="modal">
   <div class="mh"><div class="mt" id="mp-ti">Nuevo pedido</div><button class="btn-ic" id="mp-x"><i class="ti ti-x"></i></button></div>
   <div class="mb">
+    <div class="fr" style="margin-bottom:14px">
+      <div class="fg" style="margin-bottom:0">
+        <span class="fl">Fecha del pedido</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="background:var(--surface-2);border:1px solid var(--border-soft);border-radius:10px;padding:8px 12px;font-size:13px;color:var(--text-mute);font-family:var(--font-mono)" id="mp-fecha-mes"></div>
+          <select class="field" id="mp-fecha-dia" style="flex:1"></select>
+        </div>
+      </div>
+    </div>
     <div class="fg"><span class="fl">Turno</span><div class="tbs" id="t-btns"><button class="tb-btn" data-t="desayuno"><i class="ti ti-coffee"></i><span>Desayuno</span></button><button class="tb-btn" data-t="almuerzo"><i class="ti ti-salad"></i><span>Almuerzo</span></button><button class="tb-btn" data-t="cena"><i class="ti ti-moon"></i><span>Cena</span></button></div></div>
     <div class="fg"><span class="fl">Cliente</span><select class="field" id="mp-tipo"><option value="generico">Sin nombre (Cliente)</option><option value="conocido">Cliente conocido</option><option value="empresa">Empresa</option></select><div id="mp-cw" class="hidden" style="margin-top:8px"><select class="field" id="mp-ci"></select></div><div id="mp-ew" class="hidden" style="margin-top:8px"><select class="field" id="mp-ei"></select></div></div>
     <div class="fg" style="position:relative"><span class="fl">Plato / consumo</span><input class="field" id="mp-pl" placeholder="Ej: Lomo saltado…" autocomplete="off"/><div id="mp-dd" style="display:none;position:absolute;left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:100;max-height:180px;overflow-y:auto;margin-top:2px"></div></div>
@@ -631,6 +659,70 @@ html:not(.dark) .tb-al i,html:not(.dark) .tb-al span{color:#4d7d00}
   </div>
 </div></div>
 
+<!-- MODAL PDF -->
+<div id="mod-pdf" class="mo hidden"><div class="modal" style="max-width:540px">
+  <div class="mh">
+    <div>
+      <div class="mt">Exportar reporte PDF</div>
+      <div style="font-size:12px;color:var(--text-mute);margin-top:2px">Configura qué deseas exportar</div>
+    </div>
+    <button class="btn-ic" onclick="closeM('mod-pdf')"><i class="ti ti-x"></i></button>
+  </div>
+  <div class="mb">
+    <!-- Período -->
+    <div class="fg">
+      <span class="fl">Período</span>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+        <button class="pdf-opt active" data-pdf-p="mes" onclick="pdfSelPeriodo('mes')"><i class="ti ti-calendar-month"></i><span>Mes completo</span></button>
+        <button class="pdf-opt" data-pdf-p="dia" onclick="pdfSelPeriodo('dia')"><i class="ti ti-calendar-day"></i><span>Un día</span></button>
+        <button class="pdf-opt" data-pdf-p="rango" onclick="pdfSelPeriodo('rango')"><i class="ti ti-calendar-week"></i><span>Rango de días</span></button>
+      </div>
+    </div>
+    <!-- Día selector -->
+    <div id="pdf-dia-wrap" class="fg hidden">
+      <span class="fl">Seleccionar día</span>
+      <select class="field" id="pdf-dia"></select>
+    </div>
+    <!-- Rango selector -->
+    <div id="pdf-rango-wrap" class="fg hidden">
+      <div class="fr">
+        <div><span class="fl">Desde</span><select class="field" id="pdf-desde"></select></div>
+        <div><span class="fl">Hasta</span><select class="field" id="pdf-hasta"></select></div>
+      </div>
+    </div>
+    <!-- Contenido -->
+    <div class="fg">
+      <span class="fl">Contenido</span>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+        <button class="pdf-opt active" data-pdf-c="todo" onclick="pdfSelContenido('todo')"><i class="ti ti-layout-list"></i><span>Todo</span></button>
+        <button class="pdf-opt" data-pdf-c="pedidos" onclick="pdfSelContenido('pedidos')"><i class="ti ti-clipboard-list"></i><span>Solo pedidos</span></button>
+        <button class="pdf-opt" data-pdf-c="cobros" onclick="pdfSelContenido('cobros')"><i class="ti ti-cash"></i><span>Solo cobros</span></button>
+      </div>
+    </div>
+    <!-- Cliente/empresa filter -->
+    <div class="fg">
+      <span class="fl">Cliente / empresa (opcional)</span>
+      <select class="field" id="pdf-entidad">
+        <option value="">Todos los clientes y empresas</option>
+      </select>
+    </div>
+    <!-- Preview -->
+    <div style="background:var(--surface-2);border:1px solid var(--border-soft);border-radius:14px;padding:14px 16px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:600;color:var(--text-mute);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Vista previa del reporte</div>
+      <div id="pdf-preview"></div>
+    </div>
+    <!-- Filename -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+      <i class="ti ti-file-type-pdf" style="color:var(--danger);font-size:18px;flex-shrink:0"></i>
+      <span id="pdf-filename" style="font-size:12px;font-family:var(--font-mono);color:var(--text-mute)"></span>
+    </div>
+    <div class="mf">
+      <button class="btn-s" style="flex:1" onclick="closeM('mod-pdf')">Cancelar</button>
+      <button class="btn-p" style="flex:1" id="btn-pdf-gen" onclick="generarPDF()"><i class="ti ti-download"></i> Descargar PDF</button>
+    </div>
+  </div>
+</div></div>
+
 <div id="toast"></div>
 <script type="module">
 import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js'
@@ -643,7 +735,8 @@ const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','
 const TITLES={dashboard:'Dashboard',pedidos:'Pedidos',clientes:'Clientes',empresas:'Empresas',menu:'Menú del día',pagos:'Cobros y pagos',ajustes:'Ajustes'}
 const fb=initializeApp({apiKey:"AIzaSyBFFNShVcH4mFJMKHumWq_BZapJ4tOJ2QE",authDomain:"restaurante---rossana.firebaseapp.com",projectId:"restaurante---rossana",storageBucket:"restaurante---rossana.firebasestorage.app",messagingSenderId:"171874268788",appId:"1:171874268788:web:0f8b152c2e4e7cc3f9c321"})
 const auth=getAuth(fb),db=getFirestore(fb),gp=new GoogleAuthProvider()
-let S={clientes:[],empresas:[],pedidos:[],menus:{},pagos:[]},eId={p:null,cl:null,em:null},abTgt=null,pagOn=false,tAct='almuerzo',mFecha=hoy(),curPage='dashboard'
+let S={clientes:[],empresas:[],pedidos:[],menus:{},pagos:[]}
+let pedidoFechaOverride=null,eId={p:null,cl:null,em:null},abTgt=null,pagOn=false,tAct='almuerzo',mFecha=hoy(),curPage='dashboard'
 const uns=[]
 const g=id=>document.getElementById(id)
 function hoy(){return new Date().toISOString().split('T')[0]}
@@ -707,14 +800,16 @@ function initDates(){
   m.innerHTML=MESES.map((n,i)=>`<option value="${i+1}"${i+1===now.getMonth()+1?' selected':''}>${n}</option>`).join('')
   const yr=now.getFullYear();y.innerHTML=[yr-1,yr,yr+1].map(v=>`<option value="${v}"${v===yr?' selected':''}>${v}</option>`).join('')
   m.onchange=y.onchange=()=>{
-    // When period changes, update menuFecha to first day of selected month
     const sm=parseInt(g('sel-mes').value),sy=parseInt(g('sel-anio').value)
     const today=new Date()
     if(sm===today.getMonth()+1&&sy===today.getFullYear()){
-      mFecha=hoy() // current period → show today
+      mFecha=hoy()
     } else {
-      mFecha=`${sy}-${String(sm).padStart(2,'0')}-01` // other period → show 1st of month
+      mFecha=`${sy}-${String(sm).padStart(2,'0')}-01`
     }
+    // Reset day filter when period changes
+    pedidoFechaOverride=null
+    populateDayFilter()
     renderAll()
   }
 }
@@ -771,22 +866,66 @@ window.setT=t=>{tAct=t;rDash()}
 window.pagP=async id=>{try{await updateDoc(doc(db,'pedidos',id),{pagado:true});toast('Pagado')}catch(e){toast('Error',false)}}
 window.edP=id=>{const p=S.pedidos.find(x=>x.id===id);if(p)openModP(p)}
 
+function populateDayFilter(){
+  const fd=g('fd'); if(!fd) return
+  const m=gMes(),y=gAnio()
+  const diasMes=new Date(y,m,0).getDate()
+  const hoyDia=new Date().getDate()
+  const curVal=fd.value
+  fd.innerHTML=`<option value="">Todos los días</option>`
+  for(let d=1;d<=diasMes;d++){
+    const fd2=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`
+    const isToday=d===hoyDia&&m===new Date().getMonth()+1&&y===new Date().getFullYear()
+    fd.innerHTML+=`<option value="${fd2}"${fd2===curVal?' selected':''}>${d}${isToday?' (hoy)':''}</option>`
+  }
+}
+
 function rPedidos(){
-  const q=(g('sp')?.value||'').toLowerCase(),ft=g('ft')?.value||'',fe=g('fe')?.value||''
+  populateDayFilter()
+  const q=(g('sp')?.value||'').toLowerCase()
+  const ft=g('ft')?.value||''
+  const fe=g('fe')?.value||''
+  const fd=g('fd')?.value||''
   const m=gMes(),y=gAnio()
   const f=S.pedidos.filter(p=>{
-    // Filter by selected period
     const d=new Date(p.fecha+'T12:00:00')
-    if(d.getFullYear()!==y||d.getMonth()+1!==m)return false
-    if(ft&&p.turno!==ft)return false;if(fe&&est(p)!==fe)return false
+    if(d.getFullYear()!==y||d.getMonth()+1!==m) return false
+    if(fd&&p.fecha!==fd) return false
+    if(ft&&p.turno!==ft) return false
+    if(fe&&est(p)!==fe) return false
     if(q){const n=nom(p).toLowerCase();if(!n.includes(q)&&!(p.plato||'').toLowerCase().includes(q))return false}
     return true
   })
-  const mesNom=MESES[m-1]||'';g('p-cnt').textContent=`${f.length} pedidos en ${mesNom} ${y}`;g('p-empty').classList.toggle('hidden',f.length>0)
-  g('pt').innerHTML=f.map(p=>`<tr><td><div class="tdm">${nom(p)}</div><div class="tds">${tp(p)}</div></td><td style="font-size:12px;color:var(--text-mute)">${$f(p.fecha)}</td><td>${bdgT(p.turno)}</td><td><div style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.plato||'—'}</div>${p.notas?`<div style="font-size:10px;color:var(--warn)"><i class="ti ti-message-circle" style="font-size:9px"></i> ${p.notas}</div>`:''}</td><td>${chM(p.medio)}</td><td style="font-weight:700;color:var(--text);font-family:var(--font-mono);white-space:nowrap;min-width:90px">${$m(p.monto)}</td><td>${bdg(est(p))}</td><td><div style="display:flex;gap:3px"><button class="btn-ic" onclick="edP('${p.id}')"><i class="ti ti-edit"></i></button>${!p.pagado?`<button class="btn-ic" onclick="pagP('${p.id}')" style="color:var(--accent)"><i class="ti ti-check"></i></button>`:''}<button class="btn-ic" onclick="borP('${p.id}')" style="color:var(--danger)"><i class="ti ti-trash"></i></button></div></td></tr>`).join('')
+  const mesNom=MESES[m-1]||''
+  const label=fd?`${f.length} pedidos · día ${new Date(fd+'T12:00:00').getDate()} de ${mesNom}`:`${f.length} pedidos en ${mesNom} ${y}`
+  g('p-cnt').textContent=label
+  g('p-empty').classList.toggle('hidden',f.length>0)
+  g('pt').innerHTML=f.map(p=>`<tr>
+    <td><div class="tdm">${nom(p)}</div><div class="tds">${tp(p)}</div></td>
+    <td style="font-size:12px;color:var(--text-mute)">${$f(p.fecha)}</td>
+    <td>${bdgT(p.turno)}</td>
+    <td><div style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.plato||'—'}</div>${p.notas?`<div style="font-size:10px;color:var(--warn)"><i class="ti ti-message-circle" style="font-size:9px"></i> ${p.notas}</div>`:''}</td>
+    <td>${chM(p.medio)}</td>
+    <td style="font-weight:700;color:var(--text);font-family:var(--font-mono);white-space:nowrap;min-width:90px">${$m(p.monto)}</td>
+    <td>${bdg(est(p))}</td>
+    <td><div style="display:flex;gap:3px">
+      <button class="btn-ic" onclick="edP('${p.id}')"><i class="ti ti-edit"></i></button>
+      ${!p.pagado?`<button class="btn-ic" onclick="pagP('${p.id}')" style="color:var(--accent)"><i class="ti ti-check"></i></button>`:''}
+      <button class="btn-ic" onclick="borP('${p.id}')" style="color:var(--danger)"><i class="ti ti-trash"></i></button>
+    </div></td>
+  </tr>`).join('')
 }
 window.borP=async id=>{if(!confirm('¿Eliminar?'))return;try{await deleteDoc(doc(db,'pedidos',id));toast('Eliminado')}catch(e){toast('Error',false)}}
-g('sp')?.addEventListener('input',rPedidos);g('ft')?.addEventListener('change',rPedidos);g('fe')?.addEventListener('change',rPedidos)
+g('sp')?.addEventListener('input',rPedidos)
+g('ft')?.addEventListener('change',rPedidos)
+g('fe')?.addEventListener('change',rPedidos)
+g('fd')?.addEventListener('change',()=>{
+  // Sync selected day → pre-fill Nuevo Pedido date
+  const fd=g('fd')?.value
+  if(fd) pedidoFechaOverride=fd
+  else pedidoFechaOverride=null
+  rPedidos()
+})
 
 function rClientes(){
   const q=(g('scl')?.value||'').toLowerCase(),f=S.clientes.filter(c=>(c.nombre||'').toLowerCase().includes(q))
@@ -959,6 +1098,35 @@ function openModP(p=null){
   eId.p=p?.id||null;g('mp-ti').textContent=p?'Editar pedido':'Nuevo pedido'
   pagOn=p?.pagado||false;g('tg-p').className=`tgt ${pagOn?'on':'off'}`
   const tSel=p?.turno||tAct
+  // Populate fecha fields
+  const m=gMes(),y=gAnio()
+  const mesLabel=`${MESES[m-1]} ${y}`
+  if(g('mp-fecha-mes')) g('mp-fecha-mes').textContent=mesLabel
+  const diasMes=new Date(y,m,0).getDate()
+  const hoyNum=new Date().getDate()
+  // Determine selected day
+  const fechaEdit=p?.fecha||pedidoFechaOverride||hoy()
+  const fechaDate=new Date(fechaEdit+'T12:00:00')
+  const dayEdit=fechaDate.getDate()
+  if(g('mp-fecha-dia')){
+    g('mp-fecha-dia').innerHTML=''
+    for(let d=1;d<=diasMes;d++){
+      // Block future dates
+      const isToday=d===hoyNum&&m===new Date().getMonth()+1&&y===new Date().getFullYear()
+      const isFuture=new Date(y,m-1,d)>new Date()
+      if(isFuture) continue
+      const fdStr=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`
+      const opt=document.createElement('option')
+      opt.value=fdStr; opt.textContent=`${d}${isToday?' (hoy)':''}`
+      if(d===dayEdit) opt.selected=true
+      g('mp-fecha-dia').appendChild(opt)
+    }
+    // When day changes → reload plato dropdown with that day's menu
+    g('mp-fecha-dia').onchange=()=>{
+      const sel=document.querySelector('.tb-btn[class*=" tb-"]')?.dataset?.t||tAct
+      updDD(sel)
+    }
+  }
   document.querySelectorAll('.tb-btn').forEach(b=>{const k=b.dataset.t;b.className=`tb-btn${k===tSel?` tb-${k==='desayuno'?'de':k==='almuerzo'?'al':'ce'}`:''}`})
   g('mp-ci').innerHTML=`<option value="">— Seleccionar —</option>`+S.clientes.map(c=>`<option value="${c.id}"${p?.clienteId===c.id?' selected':''}>${c.nombre}</option>`).join('')
   g('mp-ei').innerHTML=`<option value="">— Seleccionar —</option>`+S.empresas.map(e=>`<option value="${e.id}"${p?.empresaId===e.id?' selected':''}>${e.nombre}</option>`).join('')
@@ -971,10 +1139,23 @@ function openModP(p=null){
 function updTipo(t){g('mp-cw').classList.toggle('hidden',t!=='conocido');g('mp-ew').classList.toggle('hidden',t!=='empresa')}
 function updMixto(){g('mp-mx').classList.toggle('hidden',g('mp-me').value!=='Mixto')}
 function updDD(t){
-  const pls=new Set()
-  Object.values(S.menus).forEach(m=>{const tm=m[t];if(!tm)return;if(tm.platos?.length)tm.platos.forEach(p=>{if(p)pls.add(p)});else if(tm.fondo)tm.fondo.split(' / ').forEach(p=>{if(p.trim())pls.add(p.trim())})})
+  // Mostrar platos del menú del DÍA SELECCIONADO en el modal
+  const fechaSel=g('mp-fecha-dia')?.value||hoy()
+  const menuHoy=S.menus[fechaSel]?.[t]
+  const pls=[]
+  if(menuHoy){
+    if(menuHoy.platos?.length) menuHoy.platos.forEach(p=>{if(p&&!pls.includes(p))pls.push(p)})
+    else if(menuHoy.fondo) menuHoy.fondo.split(' / ').forEach(p=>{if(p.trim()&&!pls.includes(p.trim()))pls.push(p.trim())})
+    if(menuHoy.entrada&&!pls.includes(menuHoy.entrada)) pls.push(menuHoy.entrada)
+    if(menuHoy.refresco&&!pls.includes(menuHoy.refresco)) pls.push(menuHoy.refresco)
+  }
   const dd=g('mp-dd');if(!dd)return
-  dd.innerHTML=[...pls].map(pl=>{const safe=pl.replace(/&/g,'&amp;').replace(/'/g,'&#39;');return`<div onclick="selPl(event,'${safe}')" style="padding:10px 14px;cursor:pointer;font-size:13px;color:var(--text);transition:background .1s" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background=''">${pl}</div>`}).join('')
+  if(!pls.length){
+    dd.innerHTML=`<div style="padding:12px 14px;font-size:12px;color:var(--text-mute);font-style:italic">Sin menú registrado para hoy en este turno</div>`
+    dd.style.display='block'
+    return
+  }
+  dd.innerHTML=pls.map(pl=>{const safe=pl.replace(/&/g,'&amp;').replace(/'/g,'&#39;');return`<div onclick="selPl(event,'${safe}')" style="padding:10px 14px;cursor:pointer;font-size:13px;color:var(--text);transition:background .1s;display:flex;align-items:center;gap:8px" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background=''"><i class="ti ti-salad" style="font-size:12px;color:var(--accent)"></i>${pl}</div>`}).join('')
 }
 window.selPl=(e,pl)=>{e.preventDefault();e.stopPropagation();g('mp-pl').value=pl;g('mp-dd').style.display='none'}
 g('mp-pl')?.addEventListener('focus',()=>{const dd=g('mp-dd');if(dd&&dd.children.length)dd.style.display='block'})
@@ -991,7 +1172,8 @@ g('btn-gp').onclick=async()=>{
   const tSel=document.querySelector('.tb-btn[class*=" tb-"]')?.dataset?.t||tAct
   const tipoCl=g('mp-tipo').value
   const data=cln({turno:tSel,plato,monto,pagado:pagOn,medio:g('mp-me').value,notas:g('mp-no').value.trim()||null,clienteId:tipoCl==='conocido'?(g('mp-ci').value||null):null,empresaId:tipoCl==='empresa'?(g('mp-ei').value||null):null,montoEfectivo:g('mp-ef').value?Number(g('mp-ef').value):null,montoYape:g('mp-yp').value?Number(g('mp-yp').value):null})
-  try{if(eId.p){await updateDoc(doc(db,'pedidos',eId.p),{...data,actualizadoEn:serverTimestamp()});toast('Pedido actualizado')}else{await addDoc(collection(db,'pedidos'),{...data,fecha:hoy(),creadoEn:serverTimestamp()});toast('Pedido registrado')};closeM('mod-p')}catch(e){toast('Error',false)}
+  const fechaGuardar=g('mp-fecha-dia')?.value||hoy()
+  try{if(eId.p){await updateDoc(doc(db,'pedidos',eId.p),{...data,fecha:fechaGuardar,actualizadoEn:serverTimestamp()});toast('Pedido actualizado')}else{await addDoc(collection(db,'pedidos'),{...data,fecha:fechaGuardar,creadoEn:serverTimestamp()});toast('Pedido registrado')};closeM('mod-p')}catch(e){toast('Error',false)}
 }
 g('mp-x').onclick=()=>closeM('mod-p')
 g('btn-np').onclick=()=>openModP()
@@ -1006,7 +1188,205 @@ function openModEm(e=null){eId.em=e?.id||null;g('mem-ti').textContent=e?'Editar 
 g('btn-nem')?.addEventListener('click',()=>openModEm())
 g('btn-gem').onclick=async()=>{const n=g('em-n').value.trim();if(!n){toast('Ingresa el nombre',false);return};const d={nombre:n,contacto:g('em-co').value.trim()||null,trabajadores:Number(g('em-tr').value)||null,telefono:g('em-te').value.trim()||null,notas:g('em-no').value.trim()||null};try{if(eId.em){await updateDoc(doc(db,'empresas',eId.em),d);toast('Actualizada')}else{await addDoc(collection(db,'empresas'),{...d,creadoEn:serverTimestamp()});toast('Registrada')};closeM('mod-em')}catch(e){toast('Error',false)}}
 
-g('btn-pdf').onclick=()=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';s.onload=()=>{const{jsPDF}=window.jspdf,doc=new jsPDF(),W=doc.internal.pageSize.getWidth(),mes=gMes(),anio=gAnio(),mesN=new Date(anio,mes-1,1).toLocaleDateString('es-PE',{month:'long',year:'numeric'});doc.setFillColor(245,247,250);doc.rect(0,0,W,32,'F');doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(15,23,42);doc.text('La Cocina de Rossana',14,14);doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(100,116,139);doc.text('Estado de cuenta · '+mesN.toUpperCase(),14,22);doc.text('Generado: '+new Date().toLocaleDateString('es-PE',{day:'numeric',month:'long',year:'numeric'}),14,28);doc.setFontSize(7);doc.text('dev. Erick Solier',W-14,28,{align:'right'});const ps=psM(),cob=ps.filter(p=>p.pagado).reduce((a,p)=>a+Number(p.monto||0),0),pen=ps.filter(p=>!p.pagado).reduce((a,p)=>a+Number(p.monto||0),0);let y=42;doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(15,23,42);doc.text('Resumen',14,y);y+=6;[[`Total`,String(ps.length)],[`Cobrado`,$m(cob)],[`Pendiente`,$m(pen)],[`Total`,$m(cob+pen)]].forEach(([k,v])=>{doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(100,116,139);doc.text(k,16,y);doc.setFont('helvetica','bold');doc.setTextColor(15,23,42);doc.text(v,80,y);y+=6});y+=4;doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('Pedidos del mes',14,y);y+=5;doc.setFillColor(15,23,42);doc.rect(14,y-4,W-28,7,'F');doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(255,255,255);doc.text('Fecha',16,y);doc.text('Cliente',38,y);doc.text('Turno',86,y);doc.text('Plato',108,y);doc.text('Pago',148,y);doc.text('Monto',163,y);doc.text('Estado',180,y);y+=5;doc.setFont('helvetica','normal');doc.setFontSize(7.5);const tl={desayuno:'Desayuno',almuerzo:'Almuerzo',cena:'Cena'};ps.sort((a,b)=>a.fecha.localeCompare(b.fecha)).forEach((p,i)=>{if(y>270){doc.addPage();y=20}if(i%2===0){doc.setFillColor(248,250,252);doc.rect(14,y-3.5,W-28,6,'F')}doc.setTextColor(100,116,139);doc.text($f(p.fecha),16,y);doc.text((nom(p)||'').substring(0,20),38,y);doc.text(tl[p.turno]||p.turno,86,y);doc.text((p.plato||'—').substring(0,18),108,y);doc.text(p.medio||'—',148,y);doc.setFont('helvetica','bold');doc.text($m(p.monto),163,y);const ec={pagado:[22,163,74],pendiente:[212,130,10],vencido:[220,38,38]};doc.setTextColor(...(ec[est(p)]||[100,116,139]));doc.text(est(p).toUpperCase(),180,y);doc.setFont('helvetica','normal');y+=6});const tot=doc.getNumberOfPages();for(let i=1;i<=tot;i++){doc.setPage(i);doc.setFontSize(7);doc.setTextColor(148,163,184);doc.text(`${i}/${tot}`,W/2,290,{align:'center'});doc.text('La Cocina de Rossana',14,290);doc.text('dev. Erick Solier',W-14,290,{align:'right'})};doc.save(`cocina-rossana-${String(mes).padStart(2,'0')}-${anio}.pdf`)};document.head.appendChild(s)}
+// ── PDF MODAL ──────────────────────────────────────────────
+let pdfPeriodo='mes', pdfContenido='todo'
+
+g('btn-pdf').onclick=()=>openPdfModal()
+
+function openPdfModal(){
+  pdfPeriodo='mes'; pdfContenido='todo'
+  // Reset UI
+  document.querySelectorAll('.pdf-opt[data-pdf-p]').forEach(b=>b.classList.remove('active'))
+  document.querySelectorAll('.pdf-opt[data-pdf-c]').forEach(b=>b.classList.remove('active'))
+  document.querySelector('.pdf-opt[data-pdf-p="mes"]')?.classList.add('active')
+  document.querySelector('.pdf-opt[data-pdf-c="todo"]')?.classList.add('active')
+  g('pdf-dia-wrap').classList.add('hidden')
+  g('pdf-rango-wrap').classList.add('hidden')
+  // Populate day selects
+  const m=gMes(),y=gAnio(),dias=new Date(y,m,0).getDate()
+  const hoyNum=new Date().getDate()
+  const hoyM=new Date().getMonth()+1,hoyY=new Date().getFullYear()
+  const daysOpts=Array.from({length:dias},(_,i)=>{
+    const d=i+1
+    const fd=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`
+    const isToday=d===hoyNum&&m===hoyM&&y===hoyY
+    return`<option value="${fd}"${isToday?' selected':''}>${d}${isToday?' (hoy)':''}</option>`
+  }).join('')
+  g('pdf-dia').innerHTML=daysOpts
+  g('pdf-desde').innerHTML=daysOpts
+  g('pdf-hasta').innerHTML=daysOpts
+  // Populate entidad filter
+  const ents=[
+    {v:'',l:'Todos'},
+    ...S.clientes.map(c=>({v:`cl:${c.id}`,l:c.nombre})),
+    ...S.empresas.map(e=>({v:`em:${e.id}`,l:e.nombre+' (empresa)'}))
+  ]
+  g('pdf-entidad').innerHTML=ents.map(e=>`<option value="${e.v}">${e.l}</option>`).join('')
+  // Update preview whenever options change
+  const upd=()=>updatePdfPreview()
+  g('pdf-dia')?.addEventListener('change',upd)
+  g('pdf-desde')?.addEventListener('change',upd)
+  g('pdf-hasta')?.addEventListener('change',upd)
+  g('pdf-entidad')?.addEventListener('change',upd)
+  updatePdfPreview()
+  openM('mod-pdf')
+}
+
+window.pdfSelPeriodo=tipo=>{
+  pdfPeriodo=tipo
+  document.querySelectorAll('.pdf-opt[data-pdf-p]').forEach(b=>b.classList.toggle('active',b.dataset.pdfP===tipo))
+  g('pdf-dia-wrap').classList.toggle('hidden',tipo!=='dia')
+  g('pdf-rango-wrap').classList.toggle('hidden',tipo!=='rango')
+  updatePdfPreview()
+}
+window.pdfSelContenido=tipo=>{
+  pdfContenido=tipo
+  document.querySelectorAll('.pdf-opt[data-pdf-c]').forEach(b=>b.classList.toggle('active',b.dataset.pdfC===tipo))
+  updatePdfPreview()
+}
+
+function getPdfPedidos(){
+  const m=gMes(),y=gAnio()
+  const entVal=g('pdf-entidad')?.value||''
+  let ps=S.pedidos.filter(p=>{
+    const d=new Date(p.fecha+'T12:00:00')
+    if(d.getFullYear()!==y||d.getMonth()+1!==m) return false
+    if(pdfPeriodo==='dia'){const fd=g('pdf-dia')?.value;if(fd&&p.fecha!==fd)return false}
+    if(pdfPeriodo==='rango'){
+      const desde=g('pdf-desde')?.value,hasta=g('pdf-hasta')?.value
+      if(desde&&p.fecha<desde)return false
+      if(hasta&&p.fecha>hasta)return false
+    }
+    if(entVal){
+      const[tipo,id]=entVal.split(':')
+      if(tipo==='cl'&&p.clienteId!==id)return false
+      if(tipo==='em'&&p.empresaId!==id)return false
+    }
+    return true
+  })
+  if(pdfContenido==='cobros') ps=ps.filter(p=>!p.pagado)
+  return ps
+}
+
+function updatePdfPreview(){
+  const ps=getPdfPedidos()
+  const m=gMes(),y=gAnio()
+  const total=ps.reduce((a,p)=>a+Number(p.monto||0),0)
+  const cobrado=ps.filter(p=>p.pagado).reduce((a,p)=>a+Number(p.monto||0),0)
+  const pendiente=ps.filter(p=>!p.pagado).reduce((a,p)=>a+Number(p.monto||0),0)
+  const vencidos=ps.filter(p=>est(p)==='vencido').length
+  // Build filename
+  const mesNom=MESES[m-1].toLowerCase()
+  const entVal=g('pdf-entidad')?.value||''
+  let entNom=''
+  if(entVal){
+    const[tipo,id]=entVal.split(':')
+    entNom='-'+(tipo==='cl'?S.clientes.find(x=>x.id===id)?.nombre:S.empresas.find(x=>x.id===id)?.nombre||'').toLowerCase().replace(/\s+/g,'-')
+  }
+  let periodNom=mesNom+y
+  if(pdfPeriodo==='dia'){const fd=g('pdf-dia')?.value;if(fd)periodNom=`dia${new Date(fd+'T12:00:00').getDate()}-${mesNom}${y}`}
+  if(pdfPeriodo==='rango'){
+    const de=g('pdf-desde')?.value,ha=g('pdf-hasta')?.value
+    if(de&&ha)periodNom=`dia${new Date(de+'T12:00:00').getDate()}al${new Date(ha+'T12:00:00').getDate()}-${mesNom}${y}`
+  }
+  const filename=`rossana${entNom}-${periodNom}.pdf`
+  if(g('pdf-filename')) g('pdf-filename').textContent=filename
+  // Preview card
+  if(g('pdf-preview')) g('pdf-preview').innerHTML=ps.length===0
+    ?`<div style="text-align:center;padding:16px;color:var(--text-mute);font-size:13px">Sin datos para los filtros seleccionados</div>`
+    :`<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+      ${[
+        {l:'Pedidos',v:String(ps.length)},
+        {l:'Total',v:$m(total)},
+        {l:'Cobrado',v:$m(cobrado)},
+        {l:'Pendiente',v:$m(pendiente)},
+      ].map(s=>`<div style="background:var(--surface);border:1px solid var(--border-soft);border-radius:10px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:11px;color:var(--text-mute);font-weight:600;text-transform:uppercase;letter-spacing:.06em">${s.l}</span>
+        <span style="font-size:14px;font-weight:800;font-family:var(--font-display);color:var(--text)">${s.v}</span>
+      </div>`).join('')}
+      ${vencidos>0?`<div style="grid-column:1/-1;background:var(--danger-soft);border:1px solid var(--danger);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--danger)"><i class="ti ti-alert-triangle"></i> ${vencidos} pedido${vencidos!==1?'s':''} vencido${vencidos!==1?'s':''}</div>`:''}
+    </div>`
+}
+
+function generarPDF(){
+  const ps=getPdfPedidos()
+  if(!ps.length){toast('Sin datos para exportar',false);return}
+  const s=document.createElement('script')
+  s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
+  s.onload=()=>{
+    const{jsPDF}=window.jspdf,doc=new jsPDF(),W=doc.internal.pageSize.getWidth()
+    const m=gMes(),y=gAnio()
+    const mesN=new Date(y,m-1,1).toLocaleDateString('es-PE',{month:'long',year:'numeric'})
+    // Periodo label
+    let periodoLabel=mesN.toUpperCase()
+    if(pdfPeriodo==='dia'){const fd=g('pdf-dia')?.value;if(fd)periodoLabel=new Date(fd+'T12:00:00').toLocaleDateString('es-PE',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).toUpperCase()}
+    if(pdfPeriodo==='rango'){
+      const de=g('pdf-desde')?.value,ha=g('pdf-hasta')?.value
+      if(de&&ha){const d1=new Date(de+'T12:00:00').getDate(),d2=new Date(ha+'T12:00:00').getDate();periodoLabel=`DÍAS ${d1} AL ${d2} DE ${mesN.toUpperCase()}`}
+    }
+    // Header
+    doc.setFillColor(10,11,12);doc.rect(0,0,W,36,'F')
+    doc.setFillColor(197,247,62);doc.rect(0,0,4,36,'F')
+    doc.setFont('helvetica','bold');doc.setFontSize(15);doc.setTextColor(243,244,246)
+    doc.text('La Cocina de Rossana',12,14)
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(154,160,170)
+    doc.text('Estado de cuenta · '+periodoLabel,12,22)
+    const contenidoLabel={todo:'Pedidos y cobros',pedidos:'Solo pedidos',cobros:'Solo cobros pendientes'}
+    doc.text(contenidoLabel[pdfContenido]||'',12,28)
+    doc.text('Generado: '+new Date().toLocaleDateString('es-PE',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}),W-14,28,{align:'right'})
+    // Summary
+    const total=ps.reduce((a,p)=>a+Number(p.monto||0),0)
+    const cobrado=ps.filter(p=>p.pagado).reduce((a,p)=>a+Number(p.monto||0),0)
+    const pendiente=ps.filter(p=>!p.pagado).reduce((a,p)=>a+Number(p.monto||0),0)
+    let y2=46
+    doc.setFillColor(26,27,33);doc.rect(14,y2-5,W-28,32,'F')
+    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(154,160,170)
+    doc.text('PEDIDOS',20,y2);doc.text('COBRADO',58,y2);doc.text('PENDIENTE',96,y2);doc.text('TOTAL',140,y2)
+    doc.setFontSize(14);doc.setTextColor(243,244,246)
+    doc.text(String(ps.length),20,y2+10)
+    doc.setTextColor(197,247,62)
+    doc.text($m(cobrado),58,y2+10)
+    doc.setTextColor(255,179,71)
+    doc.text($m(pendiente),96,y2+10)
+    doc.setTextColor(243,244,246)
+    doc.text($m(total),140,y2+10)
+    y2+=38
+    // Entidad filter label
+    const entVal=g('pdf-entidad')?.value||''
+    if(entVal){
+      const[tipo,id]=entVal.split(':')
+      const nombre=tipo==='cl'?S.clientes.find(x=>x.id===id)?.nombre:S.empresas.find(x=>x.id===id)?.nombre
+      doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(197,247,62)
+      doc.text(`Cliente/empresa: ${nombre||''}`,14,y2);y2+=8
+    }
+    // Table header
+    doc.setFillColor(26,27,33);doc.rect(14,y2-5,W-28,8,'F')
+    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(197,247,62)
+    doc.text('FECHA',16,y2);doc.text('CLIENTE',44,y2);doc.text('TURNO',92,y2);doc.text('PLATO',114,y2);doc.text('MEDIO',150,y2);doc.text('MONTO',166,y2);doc.text('ESTADO',183,y2)
+    y2+=6
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5)
+    const tl={desayuno:'Desayuno',almuerzo:'Almuerzo',cena:'Cena'}
+    ps.sort((a,b)=>a.fecha.localeCompare(b.fecha)).forEach((p,i)=>{
+      if(y2>268){doc.addPage();y2=20}
+      if(i%2===0){doc.setFillColor(22,23,28);doc.rect(14,y2-3.5,W-28,7,'F')}
+      doc.setTextColor(154,160,170)
+      doc.text($f(p.fecha),16,y2);doc.text((nom(p)||'').substring(0,22),44,y2)
+      doc.text(tl[p.turno]||p.turno,92,y2);doc.text((p.plato||'—').substring(0,16),114,y2);doc.text(p.medio||'—',150,y2)
+      doc.setFont('helvetica','bold');doc.setTextColor(243,244,246);doc.text($m(p.monto),166,y2)
+      const ec={pagado:[197,247,62],pendiente:[255,179,71],vencido:[255,100,100]}
+      doc.setTextColor(...(ec[est(p)]||[154,160,170]));doc.text(est(p).toUpperCase(),183,y2)
+      doc.setFont('helvetica','normal');y2+=7
+    })
+    // Footer
+    const tot=doc.getNumberOfPages()
+    for(let i=1;i<=tot;i++){doc.setPage(i);doc.setFontSize(7);doc.setTextColor(107,114,128);doc.text(`${i}/${tot}`,W/2,290,{align:'center'});doc.text('La Cocina de Rossana',14,290);doc.text('dev. Erick Solier',W-14,290,{align:'right'})}
+    // Save with smart filename
+    doc.save(g('pdf-filename')?.textContent||`rossana-${String(m).padStart(2,'0')}-${y}.pdf`)
+    closeM('mod-pdf')
+    toast('PDF descargado')
+  }
+  document.head.appendChild(s)
+}
 
 document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.add('hidden')}))
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.mo:not(.hidden)').forEach(m=>m.classList.add('hidden'))})
