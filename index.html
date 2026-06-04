@@ -320,7 +320,7 @@ input[type=number].field{font-family:var(--font-mono)}
 .pbar-f{height:100%;border-radius:3px;transition:width .6s cubic-bezier(.4,0,.2,1)}
 
 /* ── CHART ── */
-.cw{display:flex;align-items:flex-end;gap:4px;height:130px;padding-top:22px}
+.cw{display:flex;align-items:flex-end;gap:3px;height:130px;padding-top:22px}
 .cc{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;position:relative}
 .cbc{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center;background:var(--surface-2);border-radius:6px;overflow:hidden;min-height:4px}
 .cb{width:100%;min-height:0;border-radius:4px 4px 0 0;transition:height .6s cubic-bezier(.22,.68,0,1.2);cursor:pointer;position:relative}
@@ -414,14 +414,185 @@ html:not(.dark) .pdf-opt.active i,html:not(.dark) .pdf-opt.active span{color:#4d
 .ld span{color:var(--accent);font-style:normal;font-weight:700}
 
 /* ── MOBILE ── */
+/* ═══════════════════════════════════════════
+   MOBILE — comprehensive responsive styles
+═══════════════════════════════════════════ */
 #bnav{display:none}
+
+/* ── Tablet: 600–900px ── */
+@media(max-width:900px){
+  .g2{grid-template-columns:1fr}
+  .g3{grid-template-columns:1fr}
+  .mg{grid-template-columns:repeat(2,1fr)}
+  .ts{grid-template-columns:1fr}
+  #mc-cards{grid-template-columns:1fr!important}
+  .page{padding:14px}
+}
+
+/* ── Mobile: max 767px ── */
 @media(max-width:767px){
-  #sidebar{display:none}
-  #bnav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border-soft);z-index:100}
-  .bni{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px 10px;cursor:pointer;color:var(--text-mute);border:none;background:transparent;transition:color .15s}
+  /* ─ Layout ─ */
+  #sidebar{display:none!important}
+  #main-area{width:100%}
+  #content{padding-bottom:76px;overflow-x:hidden}
+  .page{padding:12px;max-width:100vw;overflow-x:hidden}
+
+  /* ─ Topbar ─ */
+  #topbar{
+    padding:0 12px;gap:6px;
+    flex-wrap:nowrap;overflow:hidden;
+    height:52px;
+  }
+  .tb-title{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px}
+  #tb-date{display:none}
+  .tb-gap{flex:1;min-width:4px}
+  #sel-mes,#sel-anio{font-size:11px;padding:5px 6px;max-width:80px}
+  #btn-pdf{padding:6px 10px;font-size:12px}
+  #btn-pdf span,.btn-pdf-label{display:none}
+  #btn-np{padding:6px 12px;font-size:12px}
+  #btn-np i+*{display:none}
+  #btn-dark{width:28px;height:28px;font-size:14px}
+  .btn-np-txt,.btn-pdf-txt{display:none}
+  #btn-np{padding:7px 12px}
+  #btn-pdf{padding:7px 10px}
+
+  /* ─ Metric cards ─ */
+  .mg{grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+  .mc{padding:12px}
+  .mcv{font-size:22px}
+  .mcl{font-size:10px}
+  .mci{width:26px;height:26px;font-size:13px}
+
+  /* ─ Turno strip ─ */
+  .ts{grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
+  .tt{padding:10px 8px}
+  .tt-name{font-size:11px}
+  .tt-hora{font-size:9px}
+  .tt-chip{font-size:9px;padding:2px 6px}
+  .tt-cnt{font-size:9px}
+  .tt-ic{width:22px;height:22px;font-size:12px}
+
+  /* ─ Cards ─ */
+  .card{padding:12px;border-radius:16px}
+  .ch{margin-bottom:10px}
+  .ct{font-size:10px}
+
+  /* ─ Grids ─ */
+  .g2{grid-template-columns:1fr;gap:10px;margin-bottom:10px}
+  .g3{grid-template-columns:1fr;gap:10px}
+
+  /* ─ Tables → card list on mobile ─ */
+  .tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{min-width:520px;font-size:11px}
+  th{padding:7px 10px;font-size:9px}
+  td{padding:8px 10px}
+
+  /* ─ Row items ─ */
+  .ri{padding:9px 10px}
+  .rn{font-size:12px}
+  .rs{font-size:10px}
+  .av{width:30px;height:30px;font-size:11px}
+  .av-lg{width:36px;height:36px;font-size:13px}
+
+  /* ─ Page titles ─ */
+  .pt{font-size:22px}
+  .ph{margin-bottom:14px;gap:8px}
+
+  /* ─ Pay bars ─ */
+  .pb{padding:9px 11px}
+  .pb-v{font-size:13px}
+
+  /* ─ Chart ─ */
+  .cw{height:100px}
+
+  /* ─ Forms ─ */
+  .field{padding:9px 11px;font-size:13px}
+  .fr{grid-template-columns:1fr;gap:0}
+  .fg{margin-bottom:12px}
+
+  /* ─ Buttons ─ */
+  .btn-p{padding:8px 14px;font-size:12px}
+  .btn-s{padding:7px 12px;font-size:12px}
+  .btn-ic{width:28px;height:28px;font-size:13px}
+
+  /* ─ Modals ─ */
+  .mo{padding:8px;align-items:flex-end}
+  .modal{
+    border-radius:20px 20px 0 0;
+    max-height:92vh;
+    width:100%;
+    max-width:100%;
+  }
+  .mh{padding:14px 16px 12px}
+  .mt{font-size:15px}
+  .mb{padding:14px 16px}
+  .mf{gap:8px}
+  .mf .btn-s,.mf .btn-p{padding:10px 14px;font-size:13px}
+
+  /* ─ Turno buttons in modal ─ */
+  .tbs{gap:6px}
+  .tb-btn{padding:8px 4px;border-radius:10px}
+  .tb-btn i{font-size:16px}
+  .tb-btn span{font-size:11px}
+
+  /* ─ Stat mini ─ */
+  .smv{font-size:14px}
+  .sml{font-size:9px}
+
+  /* ─ Search ─ */
+  .sb-x input{font-size:13px}
+
+  /* ─ Client/empresa cards ─ */
+  #cl-grid,#em-grid,#pag-grid{
+    grid-template-columns:1fr!important;
+    gap:10px;
+  }
+
+  /* ─ Menu cards ─ */
+  #mc-cards{grid-template-columns:1fr!important;gap:10px}
+
+  /* ─ Historial modal resumen ─ */
+  #hist-resumen{grid-template-columns:repeat(3,1fr)!important;gap:6px}
+
+  /* ─ PDF modal options ─ */
+  .pdf-opt span{font-size:10px}
+  .pdf-opt i{font-size:15px}
+  .pdf-opt{padding:8px 4px}
+
+  /* ─ Bottom nav ─ */
+  #bnav{
+    display:flex;
+    position:fixed;bottom:0;left:0;right:0;
+    background:var(--surface);
+    border-top:1px solid var(--border-soft);
+    z-index:200;
+    padding-bottom:env(safe-area-inset-bottom,0px);
+    box-shadow:0 -4px 20px rgba(0,0,0,.15);
+  }
+  .bni{
+    flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+    padding:8px 4px 10px;cursor:pointer;
+    color:var(--text-mute);border:none;background:transparent;
+    transition:color .15s;-webkit-tap-highlight-color:transparent;
+  }
   .bni.active{color:var(--accent)}
-  .bni i{font-size:20px}.bni span{font-size:9px;font-weight:600}
-  #content{padding-bottom:70px}
+  .bni i{font-size:22px}
+  .bni span{font-size:9px;font-weight:700;letter-spacing:.02em}
+  .bni.active span{color:var(--accent)}
+}
+
+/* ── Very small: max 380px ── */
+@media(max-width:380px){
+  .mg{grid-template-columns:repeat(2,1fr);gap:6px}
+  .mcv{font-size:18px}
+  .ts{grid-template-columns:repeat(3,1fr);gap:4px}
+  .tt{padding:8px 5px}
+  .tt-name{font-size:10px}
+  .tt-hora{display:none}
+  #topbar{padding:0 8px;gap:4px}
+  #sel-mes{max-width:70px}
+  #sel-anio{max-width:60px}
+  .page{padding:8px}
 }
 </style>
 </head>
@@ -474,8 +645,8 @@ html:not(.dark) .pdf-opt.active i,html:not(.dark) .pdf-opt.active span{color:#4d
       <div class="tb-gap"></div>
       <select id="sel-mes" class="tb-sel"></select>
       <select id="sel-anio" class="tb-sel"></select>
-      <button class="btn-s" id="btn-pdf"><i class="ti ti-file-type-pdf"></i> PDF</button>
-      <button class="btn-p" id="btn-np"><i class="ti ti-plus"></i> Nuevo pedido</button>
+      <button class="btn-s" id="btn-pdf" aria-label="PDF"><i class="ti ti-file-type-pdf"></i><span class="btn-pdf-txt"> PDF</span></button>
+      <button class="btn-p" id="btn-np" aria-label="Nuevo pedido"><i class="ti ti-plus"></i><span class="btn-np-txt"> Nuevo pedido</span></button>
       <button class="btn-ic" id="btn-dark"><i class="ti ti-moon" id="dark-ic"></i></button>
     </div>
     <div id="content">
@@ -510,10 +681,10 @@ html:not(.dark) .pdf-opt.active i,html:not(.dark) .pdf-opt.active span{color:#4d
         <div class="ph"><div><div class="pt">Pedidos</div><div class="psub" id="p-cnt"></div></div><button class="btn-p" id="btn-np2"><i class="ti ti-plus"></i> Nuevo pedido</button></div>
         <div class="card" style="margin-bottom:14px;padding:12px 14px">
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-            <div class="sb-x" style="flex:1;min-width:160px"><i class="ti ti-search"></i><input class="field" id="sp" placeholder="Buscar cliente o plato…"/></div>
-            <select class="field" id="fd" style="width:auto"><option value="">Todos los días</option></select>
-            <select class="field" id="ft" style="width:auto"><option value="">Todos los turnos</option><option value="desayuno">Desayuno</option><option value="almuerzo">Almuerzo</option><option value="cena">Cena</option></select>
-            <select class="field" id="fe" style="width:auto"><option value="">Todos</option><option value="pagado">Pagado</option><option value="pendiente">Pendiente</option><option value="vencido">Vencido</option></select>
+            <div class="sb-x" style="flex:1;min-width:150px"><i class="ti ti-search"></i><input class="field" id="sp" placeholder="Buscar cliente o plato…"/></div>
+            <select class="field" id="fd" style="min-width:100px;flex:1"><option value="">Todos los días</option></select>
+            <select class="field" id="ft" style="min-width:100px;flex:1"><option value="">Todos los turnos</option><option value="desayuno">Desayuno</option><option value="almuerzo">Almuerzo</option><option value="cena">Cena</option></select>
+            <select class="field" id="fe" style="min-width:80px;flex:1"><option value="">Todos</option><option value="pagado">Pagado</option><option value="pendiente">Pendiente</option><option value="vencido">Vencido</option></select>
           </div>
         </div>
         <div class="card" style="padding:0;overflow:hidden"><div class="tw"><table><thead><tr><th>Cliente</th><th>Fecha</th><th>Turno</th><th>Plato / Nota</th><th>Medio</th><th>Monto</th><th>Estado</th><th></th></tr></thead><tbody id="pt"></tbody></table></div><div id="p-empty" class="empty hidden"><div class="ei"><i class="ti ti-clipboard-list"></i></div><p>Sin pedidos que coincidan</p></div></div>
@@ -543,7 +714,7 @@ html:not(.dark) .pdf-opt.active i,html:not(.dark) .pdf-opt.active span{color:#4d
           <button class="btn-s" id="btn-next"><i class="ti ti-chevron-right"></i></button>
           <input type="date" class="field" id="mf-dp" style="width:auto"/>
         </div>
-        <div id="mc-cards" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px"></div>
+        <div id="mc-cards" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;min-width:0"></div>
         <div style="margin-top:20px"><div style="font-size:11px;font-weight:600;color:var(--text-mute);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Menús recientes</div><div id="mh"></div></div>
       </div>
 
@@ -557,7 +728,7 @@ html:not(.dark) .pdf-opt.active i,html:not(.dark) .pdf-opt.active span{color:#4d
       <!-- AJUSTES -->
       <div id="page-ajustes" class="page hidden">
         <div class="ph"><div class="pt">Ajustes</div></div>
-        <div style="max-width:440px;display:flex;flex-direction:column;gap:14px">
+        <div style="max-width:480px;width:100%;display:flex;flex-direction:column;gap:12px">
           <div class="card"><div style="font-size:11px;font-weight:600;color:var(--text-mute);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Sesión activa</div><div style="display:flex;align-items:center;gap:14px;margin-bottom:16px"><img id="aj-ph" class="hidden" style="width:50px;height:50px;border-radius:50%;border:2px solid var(--border)" src="" alt=""/><div id="aj-ini" class="hidden" style="width:50px;height:50px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:var(--accent)"></div><div><div style="font-size:16px;font-weight:700;color:var(--text)" id="aj-n"></div><div style="font-size:13px;color:var(--text-mute)" id="aj-e"></div></div></div><button class="btn-d" id="btn-lo" style="width:100%;justify-content:center;padding:10px"><i class="ti ti-logout"></i> Cerrar sesión</button></div>
           <div class="card"><div style="font-size:11px;font-weight:600;color:var(--text-mute);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Base de datos</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="stats-g"></div></div>
           <div class="card"><div style="font-size:11px;font-weight:600;color:var(--text-mute);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Acceso autorizado</div><div id="u-list"></div></div>
@@ -583,7 +754,7 @@ html:not(.dark) .pdf-opt.active i,html:not(.dark) .pdf-opt.active span{color:#4d
 <div id="mod-p" class="mo hidden"><div class="modal">
   <div class="mh"><div class="mt" id="mp-ti">Nuevo pedido</div><button class="btn-ic" id="mp-x"><i class="ti ti-x"></i></button></div>
   <div class="mb">
-    <div class="fr" style="margin-bottom:14px">
+    <div style="margin-bottom:14px">
       <div class="fg" style="margin-bottom:0">
         <span class="fl">Fecha del pedido</span>
         <div style="display:flex;align-items:center;gap:8px">
@@ -842,8 +1013,8 @@ function rDash(){
   g('dash-alert').classList.toggle('hidden',!hayV);if(hayV)g('da-txt').innerHTML=`<strong>Hay cuentas vencidas</strong> de más de 7 días`
   g('ts').innerHTML=Object.entries(TR).map(([k,t])=>{const m=S.menus[h]?.[k],cnt=hPs.filter(p=>p.turno===k).length,act=tAct===k,pls=m?.platos?.length?m.platos:(m?.fondo?m.fondo.split(' / ').map(s=>s.trim()).filter(Boolean):[]);return`<div class="tt${act?' active':''}" onclick="setT('${k}')" style="--tc:${t.c}"><div class="tt-bar"></div><div class="tt-top"><div class="tt-ic"><i class="ti ${k==='desayuno'?'ti-coffee':k==='almuerzo'?'ti-salad':'ti-moon'}"></i></div><div><div class="tt-name">${t.l}</div><div class="tt-hora">${t.h}</div></div></div><div class="tt-pls">${pls.map(pl=>`<span class="tt-chip">${pl}</span>`).join('')}</div>${cnt?`<div class="tt-cnt">${cnt} pedido${cnt!==1?'s':''} hoy</div>`:''}</div>`}).join('')
   const ph=hPs.filter(p=>p.turno===tAct)
-  g('ph-list').innerHTML=ph.length===0?`<div class="empty" style="padding:20px"><div class="ei"><i class="ti ti-clipboard-list"></i></div><p>Sin pedidos en este turno</p></div>`:ph.map(p=>`<div class="ri"><div class="ri-l">${avEl(nom(p),tp(p))}<div><div class="rn">${nom(p)}</div><div class="rs">${p.plato||''}</div>${p.notas?`<div class="rnote"><i class="ti ti-message-circle" style="font-size:10px"></i> ${p.notas}</div>`:''}</div></div><div style="display:flex;align-items:center;gap:6px">${chM(p.medio)}<span style="font-size:13px;font-weight:700;color:var(--text)">${$m(p.monto)}</span>${bdg(est(p))}${!p.pagado?`<button class="btn-ic" onclick="pagP('${p.id}')" style="color:var(--accent)"><i class="ti ti-check"></i></button>`:''}<button class="btn-ic" onclick="edP('${p.id}')"><i class="ti ti-edit"></i></button></div></div>`).join('')
-  g('ca-list').innerHTML=ctas.length===0?`<div class="empty" style="padding:20px"><div class="ei" style="background:var(--accent-soft);color:var(--accent)"><i class="ti ti-check"></i></div><p style="color:var(--accent)">Todo cobrado</p></div>`:ctas.sort((a,b)=>b.saldo-a.saldo).map(c=>{const pp=S.pedidos.filter(p=>(p.clienteId===c.id||p.empresaId===c.id)&&!p.pagado),turns=[...new Set(pp.map(p=>p.turno))],hV=pp.some(p=>est(p)==='vencido');return`<div class="ri"><div class="ri-l">${avEl(c.nombre,c._t)}<div><div class="rn">${c.nombre}</div><div class="rs">${c._t==='empresa'?'Empresa':'Frecuente'}</div><div class="tdots">${turns.map(t=>`<div class="tdot" style="background:${TR[t]?.c||'#999'}"></div>`).join('')}</div></div></div><div style="text-align:right"><div style="font-size:15px;font-weight:800;color:var(--accent);font-family:var(--font-display);letter-spacing:-.02em;white-space:nowrap">${$m(c.saldo)}</div>${bdg(hV?'vencido':'pendiente')}</div></div>`}).join('')
+  g('ph-list').innerHTML=ph.length===0?`<div class="empty" style="padding:20px"><div class="ei"><i class="ti ti-clipboard-list"></i></div><p>Sin pedidos en este turno</p></div>`:ph.map(p=>`<div class="ri"><div class="ri-l">${avEl(nom(p),tp(p))}<div><div class="rn">${nom(p)}</div><div class="rs">${p.plato||''}</div>${p.notas?`<div class="rnote"><i class="ti ti-message-circle" style="font-size:10px"></i> ${p.notas}</div>`:''}</div></div><div style="display:flex;align-items:center;gap:5px;flex-shrink:0">${chM(p.medio)}<span style="font-size:13px;font-weight:700;color:var(--text);white-space:nowrap">${$m(p.monto)}</span>${bdg(est(p))}${!p.pagado?`<button class="btn-ic" onclick="pagP('${p.id}')" style="color:var(--accent)"><i class="ti ti-check"></i></button>`:''}<button class="btn-ic" onclick="edP('${p.id}')"><i class="ti ti-edit"></i></button></div></div>`).join('')
+  g('ca-list').innerHTML=ctas.length===0?`<div class="empty" style="padding:20px"><div class="ei" style="background:var(--accent-soft);color:var(--accent)"><i class="ti ti-check"></i></div><p style="color:var(--accent)">Todo cobrado</p></div>`:ctas.sort((a,b)=>b.saldo-a.saldo).map(c=>{const pp=S.pedidos.filter(p=>(p.clienteId===c.id||p.empresaId===c.id)&&!p.pagado),turns=[...new Set(pp.map(p=>p.turno))],hV=pp.some(p=>est(p)==='vencido');return`<div class="ri"><div class="ri-l">${avEl(c.nombre,c._t)}<div><div class="rn">${c.nombre}</div><div class="rs">${c._t==='empresa'?'Empresa':'Frecuente'}</div><div class="tdots">${turns.map(t=>`<div class="tdot" style="background:${TR[t]?.c||'#999'}"></div>`).join('')}</div></div></div><div style="text-align:right;flex-shrink:0"><div style="font-size:14px;font-weight:800;color:var(--accent);font-family:var(--font-display);letter-spacing:-.02em;white-space:nowrap">${$m(c.saldo)}</div>${bdg(hV?'vencido':'pendiente')}</div></div>`}).join('')
   const pag=ps.filter(p=>p.pagado),tot=pag.reduce((a,p)=>a+Number(p.monto||0),0),por=m=>pag.filter(p=>p.medio===m).reduce((a,p)=>a+Number(p.monto||0),0)
   g('pay-bars').innerHTML=[{l:'Efectivo',v:por('Efectivo'),c:'rgba(197,247,62,0.8)'},{l:'Yape',v:por('Yape'),c:'#5d2bbd'},{l:'Mixto',v:por('Mixto'),c:'var(--warn)'}].map(it=>`<div class="pb"><div class="pb-r"><span class="pb-l">${it.l}</span><span class="pb-p">${tot?Math.round(it.v/tot*100):0}%</span></div><div class="pb-v">${$m(it.v)}</div><div class="pbar"><div class="pbar-f" style="width:${tot?Math.round(it.v/tot*100):0}%;background:${it.c}"></div></div></div>`).join('')
   const m2=gMes(),y2=gAnio(),d2=new Date(y2,m2,0).getDate(),data=[]
@@ -930,7 +1101,7 @@ g('fd')?.addEventListener('change',()=>{
 function rClientes(){
   const q=(g('scl')?.value||'').toLowerCase(),f=S.clientes.filter(c=>(c.nombre||'').toLowerCase().includes(q))
   g('cl-cnt').textContent=`${S.clientes.length} clientes`;g('cl-empty').classList.toggle('hidden',f.length>0)
-  g('cl-grid').innerHTML=f.map(c=>{const sal=sCl(c.id),hist=S.pedidos.filter(p=>p.clienteId===c.id),tot=hist.reduce((a,p)=>a+Number(p.monto||0),0),hV=hist.filter(p=>!p.pagado).some(p=>est(p)==='vencido');return`<div class="card"><div style="display:flex;align-items:start;gap:12px;margin-bottom:14px">${avEl(c.nombre,'conocido',true)}<div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;gap:6px"><div style="font-size:15px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.nombre}</div>${bdg(sal>0?(hV?'vencido':'pendiente'):'pagado')}</div>${c.telefono?`<div style="font-size:12px;color:var(--text-mute)"><i class="ti ti-phone" style="font-size:11px"></i> ${c.telefono}</div>`:''}</div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px;background:var(--surface-2);border-radius:var(--r);margin-bottom:12px"><div class="sm"><div class="smv">${hist.length}</div><div class="sml">Pedidos</div></div><div class="sm"><div class="smv" style="font-size:13px">${$m(tot)}</div><div class="sml">Total</div></div><div class="sm"><div class="smv" style="font-size:13px;color:${sal>0?'var(--accent)':'var(--accent)'}">${$m(sal)}</div><div class="sml">Pendiente</div></div></div>${c.notas?`<div style="font-size:12px;color:var(--text-mute);font-style:italic;margin-bottom:12px;padding:8px;background:var(--surface-2);border-radius:var(--r)">${c.notas}</div>`:''}<div style="display:flex;gap:6px;flex-wrap:wrap">
+  g('cl-grid').innerHTML=f.map(c=>{const sal=sCl(c.id),hist=S.pedidos.filter(p=>p.clienteId===c.id),tot=hist.reduce((a,p)=>a+Number(p.monto||0),0),hV=hist.filter(p=>!p.pagado).some(p=>est(p)==='vencido');return`<div class="card"><div style="display:flex;align-items:start;gap:12px;margin-bottom:14px">${avEl(c.nombre,'conocido',true)}<div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;gap:6px"><div style="font-size:15px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.nombre}</div>${bdg(sal>0?(hV?'vencido':'pendiente'):'pagado')}</div>${c.telefono?`<div style="font-size:12px;color:var(--text-mute)"><i class="ti ti-phone" style="font-size:11px"></i> ${c.telefono}</div>`:''}</div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px;background:var(--surface-2);border-radius:var(--r);margin-bottom:12px;overflow:hidden"><div class="sm"><div class="smv">${hist.length}</div><div class="sml">Pedidos</div></div><div class="sm"><div class="smv" style="font-size:13px">${$m(tot)}</div><div class="sml">Total</div></div><div class="sm"><div class="smv" style="font-size:13px;color:${sal>0?'var(--accent)':'var(--accent)'}">${$m(sal)}</div><div class="sml">Pendiente</div></div></div>${c.notas?`<div style="font-size:12px;color:var(--text-mute);font-style:italic;margin-bottom:12px;padding:8px;background:var(--surface-2);border-radius:var(--r)">${c.notas}</div>`:''}<div style="display:flex;gap:6px;flex-wrap:wrap">
           <button class="btn-s" style="flex:1;font-size:12px;min-width:90px" onclick="verHistorial('${c.id}','cliente')"><i class="ti ti-history"></i> Historial</button>
           <button class="btn-s" style="font-size:12px" onclick="edCl('${c.id}')"><i class="ti ti-edit"></i></button>
           <button class="btn-d" onclick="borCl('${c.id}')"><i class="ti ti-trash"></i></button>
@@ -942,7 +1113,7 @@ g('scl')?.addEventListener('input',rClientes)
 
 function rEmpresas(){
   g('em-cnt').textContent=`${S.empresas.length} empresas`;g('em-empty').classList.toggle('hidden',S.empresas.length>0)
-  g('em-grid').innerHTML=S.empresas.map(e=>{const sal=sEm(e.id),hist=S.pedidos.filter(p=>p.empresaId===e.id),tot=hist.reduce((a,p)=>a+Number(p.monto||0),0),hV=hist.filter(p=>!p.pagado).some(p=>est(p)==='vencido');return`<div class="card"><div style="display:flex;align-items:start;gap:12px;margin-bottom:14px"><div style="width:44px;height:44px;border-radius:12px;background:var(--accent-soft);border:2px solid var(--border-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-building" style="color:var(--accent);font-size:20px"></i></div><div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;gap:6px"><div style="font-size:15px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.nombre}</div>${bdg(sal>0?(hV?'vencido':'pendiente'):'pagado')}</div>${e.contacto?`<div style="font-size:12px;color:var(--text-dim)">${e.contacto}</div>`:''}</div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px;background:var(--surface-2);border-radius:var(--r);margin-bottom:12px"><div class="sm"><div class="smv">${e.trabajadores||'—'}</div><div class="sml">Trabaj.</div></div><div class="sm"><div class="smv" style="font-size:13px">${$m(tot)}</div><div class="sml">Facturado</div></div><div class="sm"><div class="smv" style="font-size:13px;color:${sal>0?'var(--accent)':'var(--accent)'}">${$m(sal)}</div><div class="sml">Pendiente</div></div></div>${e.notas?`<div style="font-size:12px;color:var(--text-mute);font-style:italic;margin-bottom:12px;padding:8px;background:var(--surface-2);border-radius:var(--r)">${e.notas}</div>`:''}<div style="display:flex;gap:6px;flex-wrap:wrap">
+  g('em-grid').innerHTML=S.empresas.map(e=>{const sal=sEm(e.id),hist=S.pedidos.filter(p=>p.empresaId===e.id),tot=hist.reduce((a,p)=>a+Number(p.monto||0),0),hV=hist.filter(p=>!p.pagado).some(p=>est(p)==='vencido');return`<div class="card"><div style="display:flex;align-items:start;gap:12px;margin-bottom:14px"><div style="width:44px;height:44px;border-radius:12px;background:var(--accent-soft);border:2px solid var(--border-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-building" style="color:var(--accent);font-size:20px"></i></div><div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;gap:6px"><div style="font-size:15px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.nombre}</div>${bdg(sal>0?(hV?'vencido':'pendiente'):'pagado')}</div>${e.contacto?`<div style="font-size:12px;color:var(--text-dim)">${e.contacto}</div>`:''}</div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px;background:var(--surface-2);border-radius:var(--r);margin-bottom:12px;overflow:hidden"><div class="sm"><div class="smv">${e.trabajadores||'—'}</div><div class="sml">Trabaj.</div></div><div class="sm"><div class="smv" style="font-size:13px">${$m(tot)}</div><div class="sml">Facturado</div></div><div class="sm"><div class="smv" style="font-size:13px;color:${sal>0?'var(--accent)':'var(--accent)'}">${$m(sal)}</div><div class="sml">Pendiente</div></div></div>${e.notas?`<div style="font-size:12px;color:var(--text-mute);font-style:italic;margin-bottom:12px;padding:8px;background:var(--surface-2);border-radius:var(--r)">${e.notas}</div>`:''}<div style="display:flex;gap:6px;flex-wrap:wrap">
           <button class="btn-s" style="flex:1;font-size:12px;min-width:90px" onclick="verHistorial('${e.id}','empresa')"><i class="ti ti-history"></i> Historial</button>
           <button class="btn-s" style="font-size:12px" onclick="edEm('${e.id}')"><i class="ti ti-edit"></i></button>
           <button class="btn-d" onclick="borEm('${e.id}')"><i class="ti ti-trash"></i></button>
@@ -1017,7 +1188,7 @@ function rPagos(){
         <button class="btn-s" onclick="opAb('${item.id}','${item._t}',${item.saldo})"><i class="ti ti-cash"></i> Abonar</button>
         <button class="btn-p" onclick="pagTodo('${item.id}','${item._t}')"><i class="ti ti-check"></i> Pagar todo</button>
       </div>
-      <button class="btn-s" style="width:100%;font-size:12px" onclick="verHistorial('${item.id}','${item._t}')"><i class="ti ti-history"></i> Ver historial de cuenta</button>
+      <button class="btn-s" style="width:100%;font-size:12px;justify-content:center" onclick="verHistorial('${item.id}','${item._t}')"><i class="ti ti-history"></i> Historial de cuenta</button>
     </div>`
   }).join('')
 
@@ -1435,10 +1606,10 @@ window.verHistorial = (id, tipo) => {
   g('hist-resumen').innerHTML = [
     {l:'Consumido',v:$m(totalConsumido),c:'var(--text)'},
     {l:'Abonado',v:$m(totalAbonado),c:'var(--accent)'},
-    {l:'Saldo actual',v:$m(saldoActual),c:saldoActual>0?'var(--warn)':'var(--accent)'},
-  ].map(s=>`<div style="background:var(--surface-2);border:1px solid var(--border-soft);border-radius:14px;padding:12px;text-align:center">
-    <div style="font-size:11px;font-weight:600;color:var(--text-mute);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">${s.l}</div>
-    <div style="font-size:20px;font-weight:800;font-family:var(--font-display);letter-spacing:-.02em;color:${s.c}">${s.v}</div>
+    {l:'Saldo',v:$m(saldoActual),c:saldoActual>0?'var(--warn)':'var(--accent)'},
+  ].map(s=>`<div style="background:var(--surface-2);border:1px solid var(--border-soft);border-radius:12px;padding:10px 8px;text-align:center;min-width:0;overflow:hidden">
+    <div style="font-size:10px;font-weight:600;color:var(--text-mute);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;white-space:nowrap">${s.l}</div>
+    <div style="font-size:16px;font-weight:800;font-family:var(--font-display);letter-spacing:-.02em;color:${s.c};white-space:nowrap">${s.v}</div>
   </div>`).join('')
 
   renderHistContent(pagosMes, pedidosMes)
