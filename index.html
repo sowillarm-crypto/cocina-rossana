@@ -481,82 +481,197 @@ html.dark .alert{background:rgba(212,130,10,.1);border-color:rgba(212,130,10,.25
 </div></div>
 
 <div id="toast"></div>
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js'
+import{getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js'
+import{getFirestore,collection,doc,addDoc,updateDoc,deleteDoc,onSnapshot,query,orderBy,serverTimestamp,setDoc}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js'
 
-in srgb,${t.c} 11%,transparent);color:${t.c}">Plato${pls.length>1?'s':''}</span><div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">${pls.map(pl=>`<span style="background:var(--c-surf2);color:var(--c-tx2);font-size:12px;font-weight:500;padding:3px 10px;border-radius:20px;border:1px solid var(--c-bd)">${pl}</span>`).join('')}</div></div>`:''}${tm.refresco?`<div><span style="font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px;background:color-mix(in srgb,${t.c} 11%,transparent);color:${t.c}">Bebida</span><div style="font-size:13px;color:var(--c-tx2);margin-top:4px">${tm.refresco}</div></div>`:''}${tm.extras?`<div><span style="font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px;background:var(--c-surf2);color:var(--c-tx3)">Extras</span><div style="font-size:12px;color:var(--c-tx3);margin-top:4px">${tm.extras}</div></div>`:''}</div>`:`<div style="font-size:13px;color:var(--c-tx3);text-align:center;padding:14px 0;font-style:italic">Sin menú registrado</div>`}</div>`
-  }).join('')
+const ALLOWED=['sowill.arm@gmail.com','chilisolier011@gmail.com']
+const TR={desayuno:{l:'Desayuno',h:'6:00 – 11:30 am',c:'#D97706'},almuerzo:{l:'Almuerzo',h:'12:00 – 3:00 pm',c:'#D4820A'},cena:{l:'Cena',h:'6:00 – 9:00 pm',c:'#7C3AED'}}
+const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
+const TITLES={dashboard:'Dashboard',pedidos:'Pedidos',clientes:'Clientes',empresas:'Empresas',menu:'Menú del día',pagos:'Cobros y pagos',ajustes:'Ajustes'}
+const fb=initializeApp({apiKey:"AIzaSyBFFNShVcH4mFJMKHumWq_BZapJ4tOJ2QE",authDomain:"restaurante---rossana.firebaseapp.com",projectId:"restaurante---rossana",storageBucket:"restaurante---rossana.firebasestorage.app",messagingSenderId:"171874268788",appId:"1:171874268788:web:0f8b152c2e4e7cc3f9c321"})
+const auth=getAuth(fb),db=getFirestore(fb),gp=new GoogleAuthProvider()
+let S={clientes:[],empresas:[],pedidos:[],menus:{}},eId={p:null,cl:null,em:null},abTgt=null,pagOn=false,tAct='almuerzo',mFecha=hoy(),curPage='dashboard'
+const uns=[]
+const g=id=>document.getElementById(id)
+function hoy(){return new Date().toISOString().split('T')[0]}
+function $m(n){return'S/ '+(+n||0).toFixed(2)}
+function $f(s){return new Date(s+'T12:00:00').toLocaleDateString('es-PE',{weekday:'short',day:'numeric',month:'short'})}
+function dias(s){return Math.floor((Date.now()-new Date(s+'T12:00:00').getTime())/86400000)}
+function est(p){if(p.pagado)return'pagado';return dias(p.fecha)>=7?'vencido':'pendiente'}
+function bdg(e){const l={pagado:'Pagado',pendiente:'Pendiente',vencido:'Vencido'};return`<span class="badge b-${e.slice(0,2)}">${l[e]}</span>`}
+function bdgT(t){const c={desayuno:'b-de',almuerzo:'b-al',cena:'b-ce'},l={desayuno:'Desayuno',almuerzo:'Almuerzo',cena:'Cena'};return`<span class="badge ${c[t]||'b-al'}">${l[t]||t}</span>`}
+function chM(m){const c={Efectivo:'ch-ef',Yape:'ch-yp',Mixto:'ch-mx'};return`<span class="badge ${c[m]||'ch-ef'}">${m}</span>`}
+function nom(p){if(p.empresaId){const e=S.empresas.find(x=>x.id===p.empresaId);return e?e.nombre:'Empresa'}if(p.clienteId){const c=S.clientes.find(x=>x.id===p.clienteId);return c?c.nombre:'Cliente'}return'Cliente'}
+function tp(p){return p.empresaId?'empresa':p.clienteId?'conocido':'generico'}
+function avEl(n,t,lg){const s=lg?'av av-lg':'av';if(t==='empresa')return`<div class="${s} av-gr"><i class="ti ti-building" style="font-size:${lg?16:13}px"></i></div>`;if(t==='generico')return`<div class="${s} av-gy"><i class="ti ti-user" style="font-size:${lg?16:13}px"></i></div>`;const i=(n||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();return`<div class="${s} av-go">${i}</div>`}
+function sCl(id){return S.pedidos.filter(p=>p.clienteId===id&&!p.pagado).reduce((a,p)=>a+Number(p.monto||0),0)}
+function sEm(id){return S.pedidos.filter(p=>p.empresaId===id&&!p.pagado).reduce((a,p)=>a+Number(p.monto||0),0)}
+function gMes(){return parseInt(g('sel-mes')?.value)||new Date().getMonth()+1}
+function gAnio(){return parseInt(g('sel-anio')?.value)||new Date().getFullYear()}
+function psM(){const m=gMes(),y=gAnio();return S.pedidos.filter(p=>{const d=new Date(p.fecha+'T12:00:00');return d.getFullYear()===y&&d.getMonth()+1===m})}
+function toast(msg,ok=true){const t=g('toast');t.textContent=msg;t.style.background=ok?'var(--c-tx)':'var(--red)';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}
+function cln(o){return JSON.parse(JSON.stringify(o,(k,v)=>v===undefined?null:v))}
+function openM(id){g(id).classList.remove('hidden')}
+function closeM(id){g(id).classList.add('hidden')}
+window.closeM=closeM
+
+// Dark mode
+let isDk=localStorage.getItem('rossana-dark')==='1'
+function apDk(d){document.documentElement.classList.toggle('dark',d);const ic=g('dark-ic');if(ic)ic.className=d?'ti ti-sun':'ti ti-moon';const tg=g('dk-tg');if(tg)tg.className=`tgt ${d?'on':'off'}`;localStorage.setItem('rossana-dark',d?'1':'0')}
+apDk(isDk)
+window.toggleDk=()=>{isDk=!isDk;apDk(isDk)}
+g('btn-dark').onclick=()=>{isDk=!isDk;apDk(isDk)}
+
+// Sidebar
+const sb=g('sidebar')
+sb.addEventListener('mouseenter',()=>sb.classList.add('open'))
+sb.addEventListener('mouseleave',()=>sb.classList.remove('open'))
+
+// AUTH
+onAuthStateChanged(auth,u=>{
+  if(u&&!ALLOWED.includes(u.email)){signOut(auth);toast('Correo no autorizado',false);return}
+  if(u){showApp(u);initL()}else showLogin()
+})
+function showLogin(){g('login-page').classList.remove('hidden');g('app-shell').classList.add('hidden')}
+function showApp(u){
+  g('login-page').classList.add('hidden');g('app-shell').classList.remove('hidden')
+  if(u.photoURL){g('sb-ph').src=u.photoURL;g('sb-ph').classList.remove('hidden');g('aj-ph').src=u.photoURL;g('aj-ph').classList.remove('hidden')}
+  else{g('sb-ini').textContent=u.displayName?.[0]||'?';g('sb-ini').classList.remove('hidden');g('aj-ini').textContent=u.displayName?.[0]||'?';g('aj-ini').classList.remove('hidden')}
+  g('sb-n').textContent=u.displayName||'';g('sb-e').textContent=u.email||''
+  g('aj-n').textContent=u.displayName||'';g('aj-e').textContent=u.email||''
+  initDates()
+}
+g('btn-login').onclick=()=>signInWithPopup(auth,gp).catch(e=>{if(e.code!=='auth/popup-closed-by-user')toast('Error al iniciar sesión',false)})
+g('btn-lo').onclick=()=>signOut(auth)
+g('sb-ubtn').onclick=()=>navTo('ajustes')
+
+function initDates(){
+  const now=new Date(),m=g('sel-mes'),y=g('sel-anio')
+  m.innerHTML=MESES.map((n,i)=>`<option value="${i+1}"${i+1===now.getMonth()+1?' selected':''}>${n}</option>`).join('')
+  const yr=now.getFullYear();y.innerHTML=[yr-1,yr,yr+1].map(v=>`<option value="${v}"${v===yr?' selected':''}>${v}</option>`).join('')
+  m.onchange=y.onchange=()=>renderAll()
+}
+function initL(){
+  uns.forEach(u=>u());uns.length=0
+  uns.push(onSnapshot(query(collection(db,'clientes'),orderBy('creadoEn','asc')),s=>{S.clientes=s.docs.map(d=>({id:d.id,...d.data()}));renderAll()}))
+  uns.push(onSnapshot(query(collection(db,'empresas'),orderBy('creadoEn','asc')),s=>{S.empresas=s.docs.map(d=>({id:d.id,...d.data()}));renderAll()}))
+  uns.push(onSnapshot(query(collection(db,'pedidos'),orderBy('creadoEn','desc')),s=>{S.pedidos=s.docs.map(d=>({id:d.id,...d.data()}));renderAll()}))
+  uns.push(onSnapshot(collection(db,'menus'),s=>{S.menus={};s.docs.forEach(d=>{S.menus[d.id]=d.data()});renderAll()}))
+}
+function navTo(page){
+  curPage=page
+  document.querySelectorAll('.page').forEach(el=>el.classList.add('hidden'))
+  g('page-'+page)?.classList.remove('hidden')
+  document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page))
+  g('tb-t').textContent=TITLES[page]||page
+  renderAll()
+}
+document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>navTo(b.dataset.page)))
+function renderAll(){const p=curPage;if(p==='dashboard')rDash();if(p==='pedidos')rPedidos();if(p==='clientes')rClientes();if(p==='empresas')rEmpresas();if(p==='menu')rMenu();if(p==='pagos')rPagos();if(p==='ajustes')rAjustes()}
+
+function rDash(){
+  const h=hoy(),ps=psM(),ing=ps.filter(p=>p.pagado).reduce((a,p)=>a+Number(p.monto||0),0),pCob=ps.filter(p=>!p.pagado).reduce((a,p)=>a+Number(p.monto||0),0)
+  const hPs=S.pedidos.filter(p=>p.fecha===h),cobH=hPs.filter(p=>p.pagado).reduce((a,p)=>a+Number(p.monto||0),0)
+  const ctas=[...S.clientes.map(c=>({...c,_t:'cliente',saldo:sCl(c.id)})),...S.empresas.map(e=>({...e,_t:'empresa',saldo:sEm(e.id)}))].filter(x=>x.saldo>0)
+  g('mc1').textContent=$m(ing);g('mc1s').textContent='del mes';g('mc2').textContent=$m(cobH);g('mc2s').textContent=`${hPs.filter(p=>p.pagado).length} pedidos`
+  g('mc3').textContent=$m(pCob);g('mc3s').textContent=`${ctas.length} cuentas abiertas`;g('mc4').textContent=String(new Set(hPs.map(p=>p.clienteId||p.empresaId||p.id)).size)
+  const hayV=S.pedidos.some(p=>!p.pagado&&dias(p.fecha)>=7)
+  g('dash-alert').classList.toggle('hidden',!hayV);if(hayV)g('da-txt').innerHTML=`<strong>Hay cuentas vencidas</strong> de más de 7 días`
+  g('ts').innerHTML=Object.entries(TR).map(([k,t])=>{const m=S.menus[h]?.[k],cnt=hPs.filter(p=>p.turno===k).length,act=tAct===k,pls=m?.platos?.length?m.platos:(m?.fondo?m.fondo.split(' / ').map(s=>s.trim()).filter(Boolean):[]);return`<div class="tt${act?' active':''}" onclick="setT('${k}')" style="--tc:${t.c}"><div class="tt-bar"></div><div class="tt-top"><div class="tt-ic"><i class="ti ${k==='desayuno'?'ti-coffee':k==='almuerzo'?'ti-salad':'ti-moon'}"></i></div><div><div class="tt-name">${t.l}</div><div class="tt-hora">${t.h}</div></div></div><div class="tt-pls">${pls.map(pl=>`<span class="tt-chip">${pl}</span>`).join('')}</div>${cnt?`<div class="tt-cnt">${cnt} pedido${cnt!==1?'s':''} hoy</div>`:''}</div>`}).join('')
+  const ph=hPs.filter(p=>p.turno===tAct)
+  g('ph-list').innerHTML=ph.length===0?`<div class="empty" style="padding:20px"><div class="ei"><i class="ti ti-clipboard-list"></i></div><p>Sin pedidos en este turno</p></div>`:ph.map(p=>`<div class="ri"><div class="ri-l">${avEl(nom(p),tp(p))}<div><div class="rn">${nom(p)}</div><div class="rs">${p.plato||''}</div>${p.notas?`<div class="rnote"><i class="ti ti-message-circle" style="font-size:10px"></i> ${p.notas}</div>`:''}</div></div><div style="display:flex;align-items:center;gap:6px">${chM(p.medio)}<span style="font-size:13px;font-weight:700;color:var(--c-tx)">${$m(p.monto)}</span>${bdg(est(p))}${!p.pagado?`<button class="btn-ic" onclick="pagP('${p.id}')" style="color:var(--green)"><i class="ti ti-check"></i></button>`:''}<button class="btn-ic" onclick="edP('${p.id}')"><i class="ti ti-edit"></i></button></div></div>`).join('')
+  g('ca-list').innerHTML=ctas.length===0?`<div class="empty" style="padding:20px"><div class="ei" style="background:var(--green-bg);color:var(--green)"><i class="ti ti-check"></i></div><p style="color:var(--green)">Todo cobrado</p></div>`:ctas.sort((a,b)=>b.saldo-a.saldo).map(c=>{const pp=S.pedidos.filter(p=>(p.clienteId===c.id||p.empresaId===c.id)&&!p.pagado),turns=[...new Set(pp.map(p=>p.turno))],hV=pp.some(p=>est(p)==='vencido');return`<div class="ri"><div class="ri-l">${avEl(c.nombre,c._t)}<div><div class="rn">${c.nombre}</div><div class="rs">${c._t==='empresa'?'Empresa':'Frecuente'}</div><div class="tdots">${turns.map(t=>`<div class="tdot" style="background:${TR[t]?.c||'#999'}"></div>`).join('')}</div></div></div><div style="text-align:right"><div style="font-size:14px;font-weight:800;color:var(--gold)">${$m(c.saldo)}</div>${bdg(hV?'vencido':'pendiente')}</div></div>`}).join('')
+  const pag=ps.filter(p=>p.pagado),tot=pag.reduce((a,p)=>a+Number(p.monto||0),0),por=m=>pag.filter(p=>p.medio===m).reduce((a,p)=>a+Number(p.monto||0),0)
+  g('pay-bars').innerHTML=[{l:'Efectivo',v:por('Efectivo'),c:'#16A34A'},{l:'Yape',v:por('Yape'),c:'#7C3AED'},{l:'Mixto',v:por('Mixto'),c:'#EA580C'}].map(it=>`<div class="pb"><div class="pb-r"><span class="pb-l">${it.l}</span><span class="pb-p">${tot?Math.round(it.v/tot*100):0}%</span></div><div class="pb-v">${$m(it.v)}</div><div class="pbar"><div class="pbar-f" style="width:${tot?Math.round(it.v/tot*100):0}%;background:${it.c}"></div></div></div>`).join('')
+  const m2=gMes(),y2=gAnio(),d2=new Date(y2,m2,0).getDate(),data=[]
+  for(let d=1;d<=d2;d++){const fd=`${y2}-${String(m2).padStart(2,'0')}-${String(d).padStart(2,'0')}`;data.push({d,v:S.pedidos.filter(p=>p.fecha===fd&&p.pagado).reduce((a,p)=>a+Number(p.monto||0),0)})}
+  const show=data.slice(-14),max=Math.max(...show.map(x=>x.v),1)
+  g('chart').innerHTML=show.map(x=>`<div class="cc"><div class="cbc"><div class="cb" style="height:${Math.max(x.v/max*100,x.v>0?4:1)}%;background:${x.v>0?'var(--gold)':'var(--c-bd)'}" data-v="${$m(x.v)}"></div></div><div class="cl">${x.d}</div></div>`).join('')
+  const ult=S.pedidos.slice(0,8)
+  g('ut').innerHTML=ult.map(p=>`<tr><td><div class="tdm">${nom(p)}</div><div class="tds">${$f(p.fecha)}</div></td><td>${bdgT(p.turno)}</td><td><div style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.plato||'—'}</div>${p.notas?`<div style="font-size:10px;color:var(--orange)"><i class="ti ti-message-circle" style="font-size:9px"></i> ${p.notas}</div>`:''}</td><td>${chM(p.medio)}</td><td style="font-weight:700;color:var(--c-tx)">${$m(p.monto)}</td><td>${bdg(est(p))}</td><td><div style="display:flex;gap:3px"><button class="btn-ic" onclick="edP('${p.id}')"><i class="ti ti-edit"></i></button>${!p.pagado?`<button class="btn-ic" onclick="pagP('${p.id}')" style="color:var(--green)"><i class="ti ti-check"></i></button>`:''}</div></td></tr>`).join('')
+  if(!ult.length)g('ut').innerHTML=`<tr><td colspan="7" style="text-align:center;color:var(--c-tx3);padding:24px">Sin pedidos aún</td></tr>`
+}
+window.setT=t=>{tAct=t;rDash()}
+window.pagP=async id=>{try{await updateDoc(doc(db,'pedidos',id),{pagado:true});toast('Pagado')}catch(e){toast('Error',false)}}
+window.edP=id=>{const p=S.pedidos.find(x=>x.id===id);if(p)openModP(p)}
+
+function rPedidos(){
+  const q=(g('sp')?.value||'').toLowerCase(),ft=g('ft')?.value||'',fe=g('fe')?.value||''
+  const f=S.pedidos.filter(p=>{if(ft&&p.turno!==ft)return false;if(fe&&est(p)!==fe)return false;if(q){const n=nom(p).toLowerCase();if(!n.includes(q)&&!(p.plato||'').toLowerCase().includes(q))return false}return true})
+  g('p-cnt').textContent=`${f.length} de ${S.pedidos.length} pedidos`;g('p-empty').classList.toggle('hidden',f.length>0)
+  g('pt').innerHTML=f.map(p=>`<tr><td><div class="tdm">${nom(p)}</div><div class="tds">${tp(p)}</div></td><td style="font-size:12px;color:var(--c-tx3)">${$f(p.fecha)}</td><td>${bdgT(p.turno)}</td><td><div style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.plato||'—'}</div>${p.notas?`<div style="font-size:10px;color:var(--orange)"><i class="ti ti-message-circle" style="font-size:9px"></i> ${p.notas}</div>`:''}</td><td>${chM(p.medio)}</td><td style="font-weight:700;color:var(--c-tx)">${$m(p.monto)}</td><td>${bdg(est(p))}</td><td><div style="display:flex;gap:3px"><button class="btn-ic" onclick="edP('${p.id}')"><i class="ti ti-edit"></i></button>${!p.pagado?`<button class="btn-ic" onclick="pagP('${p.id}')" style="color:var(--green)"><i class="ti ti-check"></i></button>`:''}<button class="btn-ic" onclick="borP('${p.id}')" style="color:var(--red)"><i class="ti ti-trash"></i></button></div></td></tr>`).join('')
+}
+window.borP=async id=>{if(!confirm('¿Eliminar?'))return;try{await deleteDoc(doc(db,'pedidos',id));toast('Eliminado')}catch(e){toast('Error',false)}}
+g('sp')?.addEventListener('input',rPedidos);g('ft')?.addEventListener('change',rPedidos);g('fe')?.addEventListener('change',rPedidos)
+
+function rClientes(){
+  const q=(g('scl')?.value||'').toLowerCase(),f=S.clientes.filter(c=>(c.nombre||'').toLowerCase().includes(q))
+  g('cl-cnt').textContent=`${S.clientes.length} clientes`;g('cl-empty').classList.toggle('hidden',f.length>0)
+  g('cl-grid').innerHTML=f.map(c=>{const sal=sCl(c.id),hist=S.pedidos.filter(p=>p.clienteId===c.id),tot=hist.reduce((a,p)=>a+Number(p.monto||0),0),hV=hist.filter(p=>!p.pagado).some(p=>est(p)==='vencido');return`<div class="card"><div style="display:flex;align-items:start;gap:12px;margin-bottom:14px">${avEl(c.nombre,'conocido',true)}<div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;gap:6px"><div style="font-size:15px;font-weight:700;color:var(--c-tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.nombre}</div>${bdg(sal>0?(hV?'vencido':'pendiente'):'pagado')}</div>${c.telefono?`<div style="font-size:12px;color:var(--c-tx3)"><i class="ti ti-phone" style="font-size:11px"></i> ${c.telefono}</div>`:''}</div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px;background:var(--c-surf2);border-radius:var(--r);margin-bottom:12px"><div class="sm"><div class="smv">${hist.length}</div><div class="sml">Pedidos</div></div><div class="sm"><div class="smv" style="font-size:13px">${$m(tot)}</div><div class="sml">Total</div></div><div class="sm"><div class="smv" style="font-size:13px;color:${sal>0?'var(--gold)':'var(--green)'}">${$m(sal)}</div><div class="sml">Pendiente</div></div></div>${c.notas?`<div style="font-size:12px;color:var(--c-tx3);font-style:italic;margin-bottom:12px;padding:8px;background:var(--c-surf2);border-radius:var(--r)">${c.notas}</div>`:''}<div style="display:flex;gap:6px"><button class="btn-s" style="flex:1;font-size:12px" onclick="edCl('${c.id}')"><i class="ti ti-edit"></i> Editar</button><button class="btn-d" onclick="borCl('${c.id}')"><i class="ti ti-trash"></i></button></div></div>`}).join('')
+}
+window.edCl=id=>{const c=S.clientes.find(x=>x.id===id);if(c)openModCl(c)}
+window.borCl=async id=>{if(!confirm('¿Eliminar cliente?'))return;try{await deleteDoc(doc(db,'clientes',id));toast('Eliminado')}catch(e){toast('Error',false)}}
+g('scl')?.addEventListener('input',rClientes)
+
+function rEmpresas(){
+  g('em-cnt').textContent=`${S.empresas.length} empresas`;g('em-empty').classList.toggle('hidden',S.empresas.length>0)
+  g('em-grid').innerHTML=S.empresas.map(e=>{const sal=sEm(e.id),hist=S.pedidos.filter(p=>p.empresaId===e.id),tot=hist.reduce((a,p)=>a+Number(p.monto||0),0),hV=hist.filter(p=>!p.pagado).some(p=>est(p)==='vencido');return`<div class="card"><div style="display:flex;align-items:start;gap:12px;margin-bottom:14px"><div style="width:44px;height:44px;border-radius:12px;background:var(--green-bg);border:2px solid var(--green-bd);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-building" style="color:var(--green);font-size:20px"></i></div><div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;gap:6px"><div style="font-size:15px;font-weight:700;color:var(--c-tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.nombre}</div>${bdg(sal>0?(hV?'vencido':'pendiente'):'pagado')}</div>${e.contacto?`<div style="font-size:12px;color:var(--c-tx2)">${e.contacto}</div>`:''}</div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px;background:var(--c-surf2);border-radius:var(--r);margin-bottom:12px"><div class="sm"><div class="smv">${e.trabajadores||'—'}</div><div class="sml">Trabaj.</div></div><div class="sm"><div class="smv" style="font-size:13px">${$m(tot)}</div><div class="sml">Facturado</div></div><div class="sm"><div class="smv" style="font-size:13px;color:${sal>0?'var(--gold)':'var(--green)'}">${$m(sal)}</div><div class="sml">Pendiente</div></div></div>${e.notas?`<div style="font-size:12px;color:var(--c-tx3);font-style:italic;margin-bottom:12px;padding:8px;background:var(--c-surf2);border-radius:var(--r)">${e.notas}</div>`:''}<div style="display:flex;gap:6px"><button class="btn-s" style="flex:1;font-size:12px" onclick="edEm('${e.id}')"><i class="ti ti-edit"></i> Editar</button><button class="btn-d" onclick="borEm('${e.id}')"><i class="ti ti-trash"></i></button></div></div>`}).join('')
+}
+window.edEm=id=>{const e=S.empresas.find(x=>x.id===id);if(e)openModEm(e)}
+window.borEm=async id=>{if(!confirm('¿Eliminar empresa?'))return;try{await deleteDoc(doc(db,'empresas',id));toast('Eliminada')}catch(e){toast('Error',false)}}
+
+function rMenu(){
+  const d=new Date(mFecha+'T12:00:00')
+  g('mf-lbl').textContent=d.toLocaleDateString('es-PE',{weekday:'long',day:'numeric',month:'long',year:'numeric'})
+  g('mf-dp').value=mFecha
+  const m=S.menus[mFecha]||{}
+  g('mc-cards').innerHTML=Object.entries(TR).map(([k,t])=>{const tm=m[k],pls=tm?.platos?.length?tm.platos:(tm?.fondo?tm.fondo.split(' / ').map(s=>s.trim()).filter(Boolean):[]);return`<div style="background:var(--c-surf);border:1px solid var(--c-bd);border-radius:var(--rl);padding:16px;border-top:3px solid ${t.c};box-shadow:0 1px 3px var(--c-sh)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:13px"><div style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:7px;background:color-mix(in srgb,${t.c} 14%,transparent);display:flex;align-items:center;justify-content:center;font-size:14px;color:${t.c}"><i class="ti ${k==='desayuno'?'ti-coffee':k==='almuerzo'?'ti-salad':'ti-moon'}"></i></div><div><div style="font-size:13px;font-weight:700;color:${t.c}">${t.l}</div><div style="font-size:10px;color:var(--c-tx3)">${t.h}</div></div></div><button class="btn-s" style="font-size:11px;padding:5px 10px" onclick="edMenu('${k}')"><i class="ti ${tm?'ti-edit':'ti-plus'}"></i> ${tm?'Editar':'Agregar'}</button></div>${tm?`<div style="display:flex;flex-direction:column;gap:9px">${tm.entrada?`<div><span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:color-mix(in srgb,${t.c} 11%,transparent);color:${t.c}">Entrada</span><div style="font-size:13px;color:var(--c-tx2);margin-top:4px">${tm.entrada}</div></div>`:''} ${pls.length?`<div><span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:color-mix(in srgb,${t.c} 11%,transparent);color:${t.c}">Plato${pls.length>1?'s':''}</span><div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">${pls.map(pl=>`<span style="background:var(--c-surf2);color:var(--c-tx2);font-size:12px;padding:3px 10px;border-radius:20px;border:1px solid var(--c-bd)">${pl}</span>`).join('')}</div></div>`:''} ${tm.refresco?`<div><span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:color-mix(in srgb,${t.c} 11%,transparent);color:${t.c}">Bebida</span><div style="font-size:13px;color:var(--c-tx2);margin-top:4px">${tm.refresco}</div></div>`:''} ${tm.extras?`<div><span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--c-surf2);color:var(--c-tx3)">Extras</span><div style="font-size:12px;color:var(--c-tx3);margin-top:4px">${tm.extras}</div></div>`:''}</div>`:`<div style="font-size:13px;color:var(--c-tx3);text-align:center;padding:14px 0;font-style:italic">Sin menú registrado</div>`}</div>`}).join('')
   const rec=Object.entries(S.menus).filter(([d])=>d!==mFecha).sort(([a],[b])=>b.localeCompare(a)).slice(0,7)
-  g('mh').innerHTML=rec.length===0?`<div style="font-size:13px;color:var(--c-tx3);text-align:center;padding:14px">Sin menús anteriores</div>`
-  :rec.map(([fecha,m])=>`<div class="card" style="display:flex;align-items:center;gap:14px;padding:12px 14px;cursor:pointer;margin-bottom:8px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor=''" onclick="mFecha='${fecha}';rMenu()"><div style="font-size:12px;font-weight:600;color:var(--c-tx3);min-width:90px">${$f(fecha)}</div><div style="display:flex;gap:12px;flex-wrap:wrap;flex:1">${Object.entries(TR).map(([k,t])=>{const pls=m[k]?.platos?.length?m[k].platos:(m[k]?.fondo?[m[k].fondo]:[]);return pls.length?`<span style="font-size:11px;color:${t.c}"><i class="ti ${k==='desayuno'?'ti-coffee':k==='almuerzo'?'ti-salad':'ti-moon'}" style="font-size:10px"></i> ${pls.join(', ')}</span>`:''}).join('')}</div><i class="ti ti-chevron-right" style="color:var(--c-bd2)"></i></div>`).join('')
+  g('mh').innerHTML=rec.length===0?`<div style="font-size:13px;color:var(--c-tx3);text-align:center;padding:14px">Sin menús anteriores</div>`:rec.map(([fecha,m])=>`<div class="card" style="display:flex;align-items:center;gap:14px;padding:12px 14px;cursor:pointer;margin-bottom:8px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor=''" onclick="mFecha='${fecha}';rMenu()"><div style="font-size:12px;font-weight:600;color:var(--c-tx3);min-width:90px">${$f(fecha)}</div><div style="display:flex;gap:12px;flex-wrap:wrap;flex:1">${Object.entries(TR).map(([k,t])=>{const pls=m[k]?.platos?.length?m[k].platos:(m[k]?.fondo?[m[k].fondo]:[]);return pls.length?`<span style="font-size:11px;color:${t.c}"><i class="ti ${k==='desayuno'?'ti-coffee':k==='almuerzo'?'ti-salad':'ti-moon'}" style="font-size:10px"></i> ${pls.join(', ')}</span>`:''}).join('')}</div><i class="ti ti-chevron-right" style="color:var(--c-bd2)"></i></div>`).join('')
 }
-window.mFecha=mFecha
 let edMenuT=null
+window.mFecha=mFecha
 window.edMenu=t=>{
-  edMenuT=t;const tr=TR[t],m=S.menus[mFecha]?.[t]||{}
-  const pls=m.platos?.length?m.platos:(m.fondo?m.fondo.split(' / ').map(s=>s.trim()).filter(Boolean):[''])
+  edMenuT=t;const tr=TR[t],m=S.menus[mFecha]?.[t]||{},pls=m.platos?.length?m.platos:(m.fondo?m.fecha.split(' / ').map(s=>s.trim()).filter(Boolean):[''])
   const ov=document.createElement('div');ov.className='mo';ov.id='m-ov'
-  ov.innerHTML=`<div class="modal"><div class="mh"><div class="mt" style="color:${tr.c}"><i class="ti ${t==='desayuno'?'ti-coffee':t==='almuerzo'?'ti-salad':'ti-moon'}"></i> ${tr.l}</div><button class="btn-ic" onclick="document.getElementById('m-ov').remove()"><i class="ti ti-x"></i></button></div><div class="mb">${t==='almuerzo'?`<div class="fg"><span class="fl">Entrada</span><input class="field" id="mf-en" value="${m.entrada||''}" placeholder="Sopa de verduras…"/></div>`:''}<div class="fg"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span class="fl" style="margin-bottom:0">${t==='desayuno'?'Platos del día':'Platos de fondo'}</span><button type="button" onclick="addPl()" style="font-size:11px;color:var(--gold);background:var(--gold-bg);border:1px solid var(--gold-bd);border-radius:6px;padding:3px 9px;cursor:pointer;font-family:inherit;font-weight:600"><i class="ti ti-plus" style="font-size:10px"></i> Agregar plato</button></div><div id="mf-pl"></div></div><div class="fg"><span class="fl">${t==='desayuno'?'Bebidas':'Refresco / bebida'}</span><input class="field" id="mf-re" value="${m.refresco||''}" placeholder="Chicha morada, café…"/></div><div class="fg"><span class="fl">Extras (opcional)</span><input class="field" id="mf-ex" value="${m.extras||''}" placeholder="Pan, postre…"/></div><div class="mf"><button class="btn-s" style="flex:1" onclick="document.getElementById('m-ov').remove()">Cancelar</button><button class="btn-p" style="flex:1" onclick="savMenu()"><i class="ti ti-check"></i> Guardar</button></div></div></div>`
+  ov.innerHTML=`<div class="modal"><div class="mh"><div class="mt" style="color:${tr.c}"><i class="ti ${t==='desayuno'?'ti-coffee':t==='almuerzo'?'ti-salad':'ti-moon'}"></i> ${tr.l}</div><button class="btn-ic" onclick="document.getElementById('m-ov').remove()"><i class="ti ti-x"></i></button></div><div class="mb">${t==='almuerzo'?`<div class="fg"><span class="fl">Entrada</span><input class="field" id="mf-en" value="${m.entrada||''}" placeholder="Sopa de verduras…"/></div>`:''}<div class="fg"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span class="fl" style="margin-bottom:0">${t==='desayuno'?'Platos del día':'Platos de fondo'}</span><button type="button" onclick="addPl()" style="font-size:11px;color:var(--gold);background:var(--gold-bg);border:1px solid var(--gold-bd);border-radius:6px;padding:3px 9px;cursor:pointer;font-family:inherit;font-weight:600"><i class="ti ti-plus" style="font-size:10px"></i> Agregar plato</button></div><div id="mf-pl"></div></div><div class="fg"><span class="fl">${t==='desayuno'?'Bebidas':'Refresco'}</span><input class="field" id="mf-re" value="${m.refresco||''}" placeholder="Chicha morada, café…"/></div><div class="fg"><span class="fl">Extras</span><input class="field" id="mf-ex" value="${m.extras||''}" placeholder="Pan, postre…"/></div><div class="mf"><button class="btn-s" style="flex:1" onclick="document.getElementById('m-ov').remove()">Cancelar</button><button class="btn-p" style="flex:1" onclick="savMenu()"><i class="ti ti-check"></i> Guardar</button></div></div></div>`
   document.body.appendChild(ov)
-  setTimeout(()=>pls.forEach(v=>addPl(v)),0)
+  const platosInit=m.platos?.length?m.platos:(m.fondo?m.fondo.split(' / ').map(s=>s.trim()).filter(Boolean):[''])
+  setTimeout(()=>platosInit.forEach(v=>addPl(v)),0)
 }
-window.addPl=(v='')=>{
-  const l=g('mf-pl');if(!l)return
-  const w=document.createElement('div');w.style.cssText='display:flex;gap:6px;margin-bottom:6px;align-items:center'
-  w.innerHTML=`<input class="field mf-pi" value="${v}" placeholder="Ej: Lomo saltado…" style="flex:1"/><button type="button" onclick="this.parentElement.remove()" style="width:32px;height:38px;border:1.5px solid var(--red-bd);background:var(--red-bg);border-radius:8px;cursor:pointer;color:var(--red);flex-shrink:0;font-size:16px">×</button>`
-  l.appendChild(w);w.querySelector('input').focus()
-}
-window.savMenu=async()=>{
-  const pls=[...document.querySelectorAll('.mf-pi')].map(i=>i.value.trim()).filter(Boolean)
-  const data={fondo:pls.join(' / '),platos:pls,refresco:(g('mf-re')?.value||'').trim(),extras:(g('mf-ex')?.value||'').trim()}
-  if(edMenuT==='almuerzo')data.entrada=(g('mf-en')?.value||'').trim()
-  try{await setDoc(doc(db,'menus',mFecha),{[edMenuT]:data,fecha:mFecha},{merge:true});g('m-ov')?.remove();toast('Menú guardado')}catch(e){toast('Error',false)}
-}
+window.addPl=(v='')=>{const l=g('mf-pl');if(!l)return;const w=document.createElement('div');w.style.cssText='display:flex;gap:6px;margin-bottom:6px;align-items:center';w.innerHTML=`<input class="field mf-pi" value="${v}" placeholder="Ej: Lomo saltado…" style="flex:1"/><button type="button" onclick="this.parentElement.remove()" style="width:32px;height:38px;border:1.5px solid var(--red-bd);background:var(--red-bg);border-radius:8px;cursor:pointer;color:var(--red);flex-shrink:0;font-size:16px">×</button>`;l.appendChild(w);w.querySelector('input').focus()}
+window.savMenu=async()=>{const pls=[...document.querySelectorAll('.mf-pi')].map(i=>i.value.trim()).filter(Boolean);const data={fondo:pls.join(' / '),platos:pls,refresco:(g('mf-re')?.value||'').trim(),extras:(g('mf-ex')?.value||'').trim()};if(edMenuT==='almuerzo')data.entrada=(g('mf-en')?.value||'').trim();try{await setDoc(doc(db,'menus',mFecha),{[edMenuT]:data,fecha:mFecha},{merge:true});g('m-ov')?.remove();toast('Menú guardado')}catch(e){toast('Error',false)}}
 g('btn-prev')?.addEventListener('click',()=>{const d=new Date(mFecha+'T12:00:00');d.setDate(d.getDate()-1);mFecha=d.toISOString().split('T')[0];rMenu()})
 g('btn-next')?.addEventListener('click',()=>{const d=new Date(mFecha+'T12:00:00');d.setDate(d.getDate()+1);mFecha=d.toISOString().split('T')[0];rMenu()})
 g('mf-dp')?.addEventListener('change',e=>{mFecha=e.target.value;rMenu()})
 
-// ── PAGOS ──
 function rPagos(){
   const cd=[...S.clientes.map(c=>({...c,_t:'cliente',saldo:sCl(c.id)})),...S.empresas.map(e=>({...e,_t:'empresa',saldo:sEm(e.id)}))].filter(x=>x.saldo>0).sort((a,b)=>b.saldo-a.saldo)
-  const tot=cd.reduce((a,x)=>a+x.saldo,0)
-  g('pag-sub').textContent=`${cd.length} cuentas abiertas · ${$m(tot)} por cobrar`
+  g('pag-sub').textContent=`${cd.length} cuentas · ${$m(cd.reduce((a,x)=>a+x.saldo,0))} por cobrar`
   g('pag-empty').classList.toggle('hidden',cd.length>0)
-  g('pag-grid').innerHTML=cd.map(item=>{
-    const pend=S.pedidos.filter(p=>(item._t==='cliente'?p.clienteId===item.id:p.empresaId===item.id)&&!p.pagado)
-    const hV=pend.some(p=>est(p)==='vencido')
-    return`<div class="card" style="${hV?'border-color:var(--red-bd)':''}"><div style="display:flex;align-items:start;gap:12px;margin-bottom:14px">${avEl(item.nombre,item._t,true)}<div style="flex:1"><div style="font-size:15px;font-weight:700;color:var(--c-tx)">${item.nombre}</div><div style="font-size:12px;color:var(--c-tx3)">${item._t==='empresa'?'Empresa':'Frecuente'}</div><div style="font-size:26px;font-weight:800;color:var(--gold);margin-top:4px;letter-spacing:-.02em">${$m(item.saldo)}</div>${hV?`<div style="font-size:11px;color:var(--red)"><i class="ti ti-alert-triangle" style="font-size:11px"></i> Tiene pedidos vencidos</div>`:''}</div></div><div style="max-height:150px;overflow-y:auto;margin-bottom:14px;display:flex;flex-direction:column;gap:5px">${pend.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;background:var(--c-surf2);border-radius:var(--r);padding:7px 10px;border:1px solid var(--c-bd)"><span style="color:var(--c-tx2)">${$f(p.fecha)} · ${p.plato||'—'}</span><div style="display:flex;align-items:center;gap:6px"><span style="font-weight:700;color:var(--c-tx)">${$m(p.monto)}</span>${bdg(est(p))}</div></div>`).join('')}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="btn-s" onclick="opAb('${item.id}','${item._t}',${item.saldo})"><i class="ti ti-cash"></i> Abonar</button><button class="btn-p" onclick="pagTodo('${item.id}','${item._t}')"><i class="ti ti-check"></i> Pagar todo</button></div></div>`
-  }).join('')
+  g('pag-grid').innerHTML=cd.map(item=>{const pend=S.pedidos.filter(p=>(item._t==='cliente'?p.clienteId===item.id:p.empresaId===item.id)&&!p.pagado),hV=pend.some(p=>est(p)==='vencido');return`<div class="card" style="${hV?'border-color:var(--red-bd)':''}"><div style="display:flex;align-items:start;gap:12px;margin-bottom:14px">${avEl(item.nombre,item._t,true)}<div style="flex:1"><div style="font-size:15px;font-weight:700;color:var(--c-tx)">${item.nombre}</div><div style="font-size:12px;color:var(--c-tx3)">${item._t==='empresa'?'Empresa':'Frecuente'}</div><div style="font-size:26px;font-weight:800;color:var(--gold);margin-top:4px">${$m(item.saldo)}</div></div></div><div style="max-height:150px;overflow-y:auto;margin-bottom:14px;display:flex;flex-direction:column;gap:5px">${pend.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;background:var(--c-surf2);border-radius:var(--r);padding:7px 10px;border:1px solid var(--c-bd)"><span style="color:var(--c-tx2)">${$f(p.fecha)} · ${p.plato||'—'}</span><div style="display:flex;align-items:center;gap:6px"><span style="font-weight:700">${$m(p.monto)}</span>${bdg(est(p))}</div></div>`).join('')}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="btn-s" onclick="opAb('${item.id}','${item._t}',${item.saldo})"><i class="ti ti-cash"></i> Abonar</button><button class="btn-p" onclick="pagTodo('${item.id}','${item._t}')"><i class="ti ti-check"></i> Pagar todo</button></div></div>`}).join('')
 }
 window.opAb=(id,t,s)=>{abTgt={id,t};g('mab-s').textContent=$m(s);g('mab-mo').value='';g('mab-ti').textContent=`Abonar — ${t==='cliente'?S.clientes.find(x=>x.id===id)?.nombre:S.empresas.find(x=>x.id===id)?.nombre}`;openM('mod-ab')}
 window.pagTodo=async(id,t)=>{const pend=S.pedidos.filter(p=>(t==='cliente'?p.clienteId===id:p.empresaId===id)&&!p.pagado);try{await Promise.all(pend.map(p=>updateDoc(doc(db,'pedidos',p.id),{pagado:true})));toast('Cuenta saldada')}catch(e){toast('Error',false)}}
 g('btn-gab').onclick=async()=>{
-  const monto=Number(g('mab-mo').value)
-  if(!monto||monto<=0){toast('Monto inválido',false);return}
-  if(!abTgt)return
-  const{id,t}=abTgt
+  const monto=Number(g('mab-mo').value);if(!monto||monto<=0){toast('Monto inválido',false);return}
+  if(!abTgt)return;const{id,t}=abTgt
   const pend=S.pedidos.filter(p=>(t==='cliente'?p.clienteId===id:p.empresaId===id)&&!p.pagado).sort((a,b)=>a.fecha.localeCompare(b.fecha))
   let rest=monto;const ups=[]
   for(const p of pend){if(rest<=0)break;if(rest>=Number(p.monto)){ups.push(updateDoc(doc(db,'pedidos',p.id),{pagado:true}));rest-=Number(p.monto)}}
-  try{
-    await Promise.all(ups)
-    await addDoc(collection(db,'pagos'),{...(t==='cliente'?{clienteId:id}:{empresaId:id}),monto,medio:g('mab-me').value,fecha:hoy(),creadoEn:serverTimestamp()})
-    closeM('mod-ab')
-    const curr=t==='cliente'?sCl(id):sEm(id)
-    const restante=Math.max(0,curr-monto)
-    toast(restante>0?`Abono registrado · Saldo restante: ${$m(restante)}`:'Cuenta saldada completamente')
-  }catch(e){toast('Error al registrar',false)}
+  try{await Promise.all(ups);await addDoc(collection(db,'pagos'),{...(t==='cliente'?{clienteId:id}:{empresaId:id}),monto,medio:g('mab-me').value,fecha:hoy(),creadoEn:serverTimestamp()});closeM('mod-ab');toast(rest>0?`Abono registrado · Saldo restante: ${$m(Math.max(0,rest))}`:'Cuenta saldada')}catch(e){toast('Error',false)}
 }
 
-// ── AJUSTES ──
 function rAjustes(){
-  g('stats-g').innerHTML=[{l:'Clientes',v:S.clientes.length},{l:'Empresas',v:S.empresas.length},{l:'Pedidos',v:S.pedidos.length},{l:'Menús',v:Object.keys(S.menus).length}].map(s=>`<div style="background:var(--c-surf2);border:1px solid var(--c-bd);border-radius:var(--r);padding:14px;text-align:center"><div style="font-size:24px;font-weight:800;color:var(--c-tx)">${s.v}</div><div style="font-size:11px;color:var(--c-tx3);font-weight:500;margin-top:2px">${s.l}</div></div>`).join('')
+  g('stats-g').innerHTML=[{l:'Clientes',v:S.clientes.length},{l:'Empresas',v:S.empresas.length},{l:'Pedidos',v:S.pedidos.length},{l:'Menús',v:Object.keys(S.menus).length}].map(s=>`<div style="background:var(--c-surf2);border:1px solid var(--c-bd);border-radius:var(--r);padding:14px;text-align:center"><div style="font-size:24px;font-weight:800;color:var(--c-tx)">${s.v}</div><div style="font-size:11px;color:var(--c-tx3);margin-top:2px">${s.l}</div></div>`).join('')
   g('u-list').innerHTML=ALLOWED.map((email,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--c-surf2);border:1px solid var(--c-bd);border-radius:var(--r);margin-bottom:8px"><div style="width:32px;height:32px;border-radius:50%;background:var(--gold-bg);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--gold)">${i===0?'E':'R'}</div><div><div style="font-size:13px;font-weight:600;color:var(--c-tx)">${i===0?'Erick Solier':'Rossana'}</div><div style="font-size:11px;color:var(--c-tx3)">${email}</div></div><span class="badge b-pa" style="margin-left:auto">Activo</span></div>`).join('')
   const tg=g('dk-tg');if(tg)tg.className=`tgt ${isDk?'on':'off'}`
 }
 
-// ── MODAL PEDIDO ──
 function openModP(p=null){
-  eId.p=p?.id||null
-  g('mp-ti').textContent=p?'Editar pedido':'Nuevo pedido'
+  eId.p=p?.id||null;g('mp-ti').textContent=p?'Editar pedido':'Nuevo pedido'
   pagOn=p?.pagado||false;g('tg-p').className=`tgt ${pagOn?'on':'off'}`
   const tSel=p?.turno||tAct
   document.querySelectorAll('.tb-btn').forEach(b=>{const k=b.dataset.t;b.className=`tb-btn${k===tSel?` tb-${k==='desayuno'?'de':k==='almuerzo'?'al':'ce'}`:''}`})
@@ -574,12 +689,12 @@ function updDD(t){
   const pls=new Set()
   Object.values(S.menus).forEach(m=>{const tm=m[t];if(!tm)return;if(tm.platos?.length)tm.platos.forEach(p=>{if(p)pls.add(p)});else if(tm.fondo)tm.fondo.split(' / ').forEach(p=>{if(p.trim())pls.add(p.trim())})})
   const dd=g('mp-dd');if(!dd)return
-  dd.innerHTML=[...pls].map(pl=>`<div onclick="selPl('${pl.replace(/'/g,"\'")}',event)" style="padding:10px 14px;cursor:pointer;font-size:13px;color:var(--c-tx);transition:background .1s" onmouseover="this.style.background='var(--c-surf2)'" onmouseout="this.style.background=''">${pl}</div>`).join('')
+  dd.innerHTML=[...pls].map(pl=>`<div onclick="selPl(event,'${pl.replace(/\/g,'\\').replace(/'/g,"\'")}')" style="padding:10px 14px;cursor:pointer;font-size:13px;color:var(--c-tx);transition:background .1s" onmouseover="this.style.background='var(--c-surf2)'" onmouseout="this.style.background=''">${pl}</div>`).join('')
 }
-window.selPl=(pl,e)=>{e.preventDefault();g('mp-pl').value=pl;g('mp-dd').style.display='none'}
+window.selPl=(e,pl)=>{e.preventDefault();e.stopPropagation();g('mp-pl').value=pl;g('mp-dd').style.display='none'}
 g('mp-pl')?.addEventListener('focus',()=>{const dd=g('mp-dd');if(dd&&dd.children.length)dd.style.display='block'})
 g('mp-pl')?.addEventListener('input',()=>{const v=(g('mp-pl').value||'').toLowerCase(),dd=g('mp-dd');if(!dd)return;[...dd.children].forEach(c=>c.style.display=c.textContent.toLowerCase().includes(v)?'':'none');dd.style.display='block'})
-document.addEventListener('click',e=>{if(!g('mp-pl')?.contains(e.target)&&!g('mp-dd')?.contains(e.target))if(g('mp-dd'))g('mp-dd').style.display='none'})
+document.addEventListener('click',e=>{if(!g('mp-pl')?.contains(e.target)&&!g('mp-dd')?.contains(e.target)){const dd=g('mp-dd');if(dd)dd.style.display='none'}})
 g('mp-tipo').onchange=e=>updTipo(e.target.value)
 g('mp-me').onchange=updMixto
 document.querySelectorAll('.tb-btn').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.t;document.querySelectorAll('.tb-btn').forEach(x=>x.className='tb-btn');b.className=`tb-btn tb-${k==='desayuno'?'de':k==='almuerzo'?'al':'ce'}`;updDD(k)}))
@@ -588,72 +703,25 @@ g('btn-gp').onclick=async()=>{
   const plato=g('mp-pl').value.trim(),monto=Number(g('mp-mo').value)
   if(!plato){toast('Ingresa el plato',false);return}
   if(!monto||monto<=0){toast('Monto inválido',false);return}
-  const tSel=document.querySelector('.tb-btn[class*="tb-a"], .tb-btn[class*="tb-d"], .tb-btn[class*="tb-c"]')?.dataset?.t||tAct
+  const tSel=document.querySelector('.tb-btn[class*=" tb-"]')?.dataset?.t||tAct
   const tipoCl=g('mp-tipo').value
   const data=cln({turno:tSel,plato,monto,pagado:pagOn,medio:g('mp-me').value,notas:g('mp-no').value.trim()||null,clienteId:tipoCl==='conocido'?(g('mp-ci').value||null):null,empresaId:tipoCl==='empresa'?(g('mp-ei').value||null):null,montoEfectivo:g('mp-ef').value?Number(g('mp-ef').value):null,montoYape:g('mp-yp').value?Number(g('mp-yp').value):null})
-  try{if(eId.p){await updateDoc(doc(db,'pedidos',eId.p),{...data,actualizadoEn:serverTimestamp()});toast('Pedido actualizado')}else{await addDoc(collection(db,'pedidos'),{...data,fecha:hoy(),creadoEn:serverTimestamp()});toast('Pedido registrado')};closeM('mod-p')}catch(e){toast('Error al guardar',false)}
+  try{if(eId.p){await updateDoc(doc(db,'pedidos',eId.p),{...data,actualizadoEn:serverTimestamp()});toast('Pedido actualizado')}else{await addDoc(collection(db,'pedidos'),{...data,fecha:hoy(),creadoEn:serverTimestamp()});toast('Pedido registrado')};closeM('mod-p')}catch(e){toast('Error',false)}
 }
 g('mp-x').onclick=()=>closeM('mod-p')
 g('btn-np').onclick=()=>openModP()
 g('btn-np2')?.addEventListener('click',()=>openModP())
 g('btn-ad')?.addEventListener('click',()=>openModP())
 
-// ── MODAL CLIENTE ──
 function openModCl(c=null){eId.cl=c?.id||null;g('mcl-ti').textContent=c?'Editar cliente':'Nuevo cliente';g('cl-n').value=c?.nombre||'';g('cl-t').value=c?.telefono||'';g('cl-no').value=c?.notas||'';openM('mod-cl')}
 g('btn-ncl')?.addEventListener('click',()=>openModCl())
-g('btn-gcl').onclick=async()=>{
-  const n=g('cl-n').value.trim();if(!n){toast('Ingresa un nombre',false);return}
-  const d={nombre:n,telefono:g('cl-t').value.trim()||null,notas:g('cl-no').value.trim()||null,tipo:'conocido'}
-  try{if(eId.cl){await updateDoc(doc(db,'clientes',eId.cl),d);toast('Cliente actualizado')}else{await addDoc(collection(db,'clientes'),{...d,creadoEn:serverTimestamp()});toast('Cliente registrado')};closeM('mod-cl')}catch(e){toast('Error',false)}
-}
+g('btn-gcl').onclick=async()=>{const n=g('cl-n').value.trim();if(!n){toast('Ingresa un nombre',false);return};const d={nombre:n,telefono:g('cl-t').value.trim()||null,notas:g('cl-no').value.trim()||null,tipo:'conocido'};try{if(eId.cl){await updateDoc(doc(db,'clientes',eId.cl),d);toast('Actualizado')}else{await addDoc(collection(db,'clientes'),{...d,creadoEn:serverTimestamp()});toast('Registrado')};closeM('mod-cl')}catch(e){toast('Error',false)}}
 
-// ── MODAL EMPRESA ──
 function openModEm(e=null){eId.em=e?.id||null;g('mem-ti').textContent=e?'Editar empresa':'Nueva empresa';g('em-n').value=e?.nombre||'';g('em-co').value=e?.contacto||'';g('em-tr').value=e?.trabajadores||'';g('em-te').value=e?.telefono||'';g('em-no').value=e?.notas||'';openM('mod-em')}
 g('btn-nem')?.addEventListener('click',()=>openModEm())
-g('btn-gem').onclick=async()=>{
-  const n=g('em-n').value.trim();if(!n){toast('Ingresa el nombre',false);return}
-  const d={nombre:n,contacto:g('em-co').value.trim()||null,trabajadores:Number(g('em-tr').value)||null,telefono:g('em-te').value.trim()||null,notas:g('em-no').value.trim()||null}
-  try{if(eId.em){await updateDoc(doc(db,'empresas',eId.em),d);toast('Empresa actualizada')}else{await addDoc(collection(db,'empresas'),{...d,creadoEn:serverTimestamp()});toast('Empresa registrada')};closeM('mod-em')}catch(e){toast('Error',false)}
-}
+g('btn-gem').onclick=async()=>{const n=g('em-n').value.trim();if(!n){toast('Ingresa el nombre',false);return};const d={nombre:n,contacto:g('em-co').value.trim()||null,trabajadores:Number(g('em-tr').value)||null,telefono:g('em-te').value.trim()||null,notas:g('em-no').value.trim()||null};try{if(eId.em){await updateDoc(doc(db,'empresas',eId.em),d);toast('Actualizada')}else{await addDoc(collection(db,'empresas'),{...d,creadoEn:serverTimestamp()});toast('Registrada')};closeM('mod-em')}catch(e){toast('Error',false)}}
 
-// ── PDF ──
-g('btn-pdf').onclick=()=>{
-  const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
-  s.onload=()=>{
-    const{jsPDF}=window.jspdf,doc=new jsPDF(),W=doc.internal.pageSize.getWidth()
-    const mes=gMes(),anio=gAnio(),mesN=new Date(anio,mes-1,1).toLocaleDateString('es-PE',{month:'long',year:'numeric'})
-    doc.setFillColor(245,247,250);doc.rect(0,0,W,32,'F')
-    doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(15,23,42);doc.text('La Cocina de Rossana',14,14)
-    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(100,116,139)
-    doc.text('Estado de cuenta · '+mesN.toUpperCase(),14,22)
-    doc.text('Generado: '+new Date().toLocaleDateString('es-PE',{day:'numeric',month:'long',year:'numeric'}),14,28)
-    doc.setFontSize(7);doc.text('dev. Erick Solier',W-14,28,{align:'right'})
-    const ps=psM(),cob=ps.filter(p=>p.pagado).reduce((a,p)=>a+Number(p.monto||0),0),pen=ps.filter(p=>!p.pagado).reduce((a,p)=>a+Number(p.monto||0),0)
-    let y=42;doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(15,23,42);doc.text('Resumen del mes',14,y);y+=6
-    [[`Total pedidos`,String(ps.length)],[`Cobrado`,$m(cob)],[`Por cobrar`,$m(pen)],[`Total`,$m(cob+pen)]].forEach(([k,v])=>{doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(100,116,139);doc.text(k,16,y);doc.setFont('helvetica','bold');doc.setTextColor(15,23,42);doc.text(v,80,y);y+=6})
-    y+=4;doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('Pedidos del mes',14,y);y+=5
-    doc.setFillColor(15,23,42);doc.rect(14,y-4,W-28,7,'F')
-    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(255,255,255)
-    doc.text('Fecha',16,y);doc.text('Cliente',38,y);doc.text('Turno',86,y);doc.text('Plato',108,y);doc.text('Pago',148,y);doc.text('Monto',163,y);doc.text('Estado',180,y)
-    y+=5;doc.setFont('helvetica','normal');doc.setFontSize(7.5)
-    const tl={desayuno:'Desayuno',almuerzo:'Almuerzo',cena:'Cena'}
-    ps.sort((a,b)=>a.fecha.localeCompare(b.fecha)).forEach((p,i)=>{
-      if(y>270){doc.addPage();y=20}
-      if(i%2===0){doc.setFillColor(248,250,252);doc.rect(14,y-3.5,W-28,6,'F')}
-      doc.setTextColor(100,116,139)
-      doc.text($f(p.fecha),16,y);doc.text((nom(p)||'').substring(0,20),38,y)
-      doc.text(tl[p.turno]||p.turno,86,y);doc.text((p.plato||'—').substring(0,18),108,y);doc.text(p.medio||'—',148,y)
-      doc.setFont('helvetica','bold');doc.text($m(p.monto),163,y)
-      const ec={pagado:[22,163,74],pendiente:[212,130,10],vencido:[220,38,38]}
-      doc.setTextColor(...(ec[est(p)]||[100,116,139]));doc.text(est(p).toUpperCase(),180,y)
-      doc.setFont('helvetica','normal');y+=6
-    })
-    const tot=doc.getNumberOfPages()
-    for(let i=1;i<=tot;i++){doc.setPage(i);doc.setFontSize(7);doc.setTextColor(148,163,184);doc.text(`${i}/${tot}`,W/2,290,{align:'center'});doc.text('La Cocina de Rossana',14,290);doc.text('dev. Erick Solier',W-14,290,{align:'right'})}
-    doc.save(`cocina-rossana-${String(mes).padStart(2,'0')}-${anio}.pdf`)
-  }
-  document.head.appendChild(s)
-}
+g('btn-pdf').onclick=()=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';s.onload=()=>{const{jsPDF}=window.jspdf,doc=new jsPDF(),W=doc.internal.pageSize.getWidth(),mes=gMes(),anio=gAnio(),mesN=new Date(anio,mes-1,1).toLocaleDateString('es-PE',{month:'long',year:'numeric'});doc.setFillColor(245,247,250);doc.rect(0,0,W,32,'F');doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(15,23,42);doc.text('La Cocina de Rossana',14,14);doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(100,116,139);doc.text('Estado de cuenta · '+mesN.toUpperCase(),14,22);doc.text('Generado: '+new Date().toLocaleDateString('es-PE',{day:'numeric',month:'long',year:'numeric'}),14,28);doc.setFontSize(7);doc.text('dev. Erick Solier',W-14,28,{align:'right'});const ps=psM(),cob=ps.filter(p=>p.pagado).reduce((a,p)=>a+Number(p.monto||0),0),pen=ps.filter(p=>!p.pagado).reduce((a,p)=>a+Number(p.monto||0),0);let y=42;doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(15,23,42);doc.text('Resumen',14,y);y+=6;[[`Total`,String(ps.length)],[`Cobrado`,$m(cob)],[`Pendiente`,$m(pen)],[`Total`,$m(cob+pen)]].forEach(([k,v])=>{doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(100,116,139);doc.text(k,16,y);doc.setFont('helvetica','bold');doc.setTextColor(15,23,42);doc.text(v,80,y);y+=6});y+=4;doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('Pedidos del mes',14,y);y+=5;doc.setFillColor(15,23,42);doc.rect(14,y-4,W-28,7,'F');doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(255,255,255);doc.text('Fecha',16,y);doc.text('Cliente',38,y);doc.text('Turno',86,y);doc.text('Plato',108,y);doc.text('Pago',148,y);doc.text('Monto',163,y);doc.text('Estado',180,y);y+=5;doc.setFont('helvetica','normal');doc.setFontSize(7.5);const tl={desayuno:'Desayuno',almuerzo:'Almuerzo',cena:'Cena'};ps.sort((a,b)=>a.fecha.localeCompare(b.fecha)).forEach((p,i)=>{if(y>270){doc.addPage();y=20}if(i%2===0){doc.setFillColor(248,250,252);doc.rect(14,y-3.5,W-28,6,'F')}doc.setTextColor(100,116,139);doc.text($f(p.fecha),16,y);doc.text((nom(p)||'').substring(0,20),38,y);doc.text(tl[p.turno]||p.turno,86,y);doc.text((p.plato||'—').substring(0,18),108,y);doc.text(p.medio||'—',148,y);doc.setFont('helvetica','bold');doc.text($m(p.monto),163,y);const ec={pagado:[22,163,74],pendiente:[212,130,10],vencido:[220,38,38]};doc.setTextColor(...(ec[est(p)]||[100,116,139]));doc.text(est(p).toUpperCase(),180,y);doc.setFont('helvetica','normal');y+=6});const tot=doc.getNumberOfPages();for(let i=1;i<=tot;i++){doc.setPage(i);doc.setFontSize(7);doc.setTextColor(148,163,184);doc.text(`${i}/${tot}`,W/2,290,{align:'center'});doc.text('La Cocina de Rossana',14,290);doc.text('dev. Erick Solier',W-14,290,{align:'right'})};doc.save(`cocina-rossana-${String(mes).padStart(2,'0')}-${anio}.pdf`)};document.head.appendChild(s)}
 
 document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.add('hidden')}))
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.mo:not(.hidden)').forEach(m=>m.classList.add('hidden'))})
