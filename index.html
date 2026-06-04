@@ -598,6 +598,28 @@ html:not(.dark) .tb-al i,html:not(.dark) .tb-al span{color:#4d7d00}
   </div>
 </div></div>
 
+<!-- MODAL HISTORIAL -->
+<div id="mod-hist" class="mo hidden"><div class="modal" style="max-width:560px">
+  <div class="mh">
+    <div>
+      <div class="mt" id="hist-title">Historial de cuenta</div>
+      <div style="font-size:12px;color:var(--text-mute);margin-top:2px" id="hist-period"></div>
+    </div>
+    <button class="btn-ic" onclick="closeM('mod-hist')"><i class="ti ti-x"></i></button>
+  </div>
+  <div class="mb" style="padding-top:14px">
+    <!-- Resumen -->
+    <div id="hist-resumen" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px"></div>
+    <!-- Tabs -->
+    <div style="display:flex;gap:6px;margin-bottom:14px">
+      <button id="hist-tab-pagos" onclick="histTab('pagos')" class="btn-p" style="font-size:12px;padding:6px 14px">Pagos realizados</button>
+      <button id="hist-tab-consumos" onclick="histTab('consumos')" class="btn-s" style="font-size:12px;padding:6px 14px">Consumos</button>
+    </div>
+    <!-- Content -->
+    <div id="hist-content" style="max-height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:6px"></div>
+  </div>
+</div></div>
+
 <!-- MODAL ABONAR -->
 <div id="mod-ab" class="mo hidden"><div class="modal">
   <div class="mh"><div class="mt" id="mab-ti">Registrar abono</div><button class="btn-ic" onclick="closeM('mod-ab')"><i class="ti ti-x"></i></button></div>
@@ -636,14 +658,10 @@ function nom(p){if(p.empresaId){const e=S.empresas.find(x=>x.id===p.empresaId);r
 function tp(p){return p.empresaId?'empresa':p.clienteId?'conocido':'generico'}
 function avEl(n,t,lg){const s=lg?'av av-lg':'av';if(t==='empresa')return`<div class="${s} av-gr"><i class="ti ti-building" style="font-size:${lg?16:13}px"></i></div>`;if(t==='generico')return`<div class="${s} av-gy"><i class="ti ti-user" style="font-size:${lg?16:13}px"></i></div>`;const i=(n||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();return`<div class="${s} av-go">${i}</div>`}
 function sCl(id){
-  const deuda=S.pedidos.filter(p=>p.clienteId===id&&!p.pagado).reduce((a,p)=>a+Number(p.monto||0),0)
-  const abonado=S.pagos.filter(p=>p.clienteId===id).reduce((a,p)=>a+Number(p.monto||0),0)
-  return Math.max(0,deuda-abonado)
+  return S.pedidos.filter(p=>p.clienteId===id&&!p.pagado).reduce((a,p)=>a+Number(p.monto||0),0)
 }
 function sEm(id){
-  const deuda=S.pedidos.filter(p=>p.empresaId===id&&!p.pagado).reduce((a,p)=>a+Number(p.monto||0),0)
-  const abonado=S.pagos.filter(p=>p.empresaId===id).reduce((a,p)=>a+Number(p.monto||0),0)
-  return Math.max(0,deuda-abonado)
+  return S.pedidos.filter(p=>p.empresaId===id&&!p.pagado).reduce((a,p)=>a+Number(p.monto||0),0)
 }
 function gMes(){return parseInt(g('sel-mes')?.value)||new Date().getMonth()+1}
 function gAnio(){return parseInt(g('sel-anio')?.value)||new Date().getFullYear()}
@@ -773,7 +791,11 @@ g('sp')?.addEventListener('input',rPedidos);g('ft')?.addEventListener('change',r
 function rClientes(){
   const q=(g('scl')?.value||'').toLowerCase(),f=S.clientes.filter(c=>(c.nombre||'').toLowerCase().includes(q))
   g('cl-cnt').textContent=`${S.clientes.length} clientes`;g('cl-empty').classList.toggle('hidden',f.length>0)
-  g('cl-grid').innerHTML=f.map(c=>{const sal=sCl(c.id),hist=S.pedidos.filter(p=>p.clienteId===c.id),tot=hist.reduce((a,p)=>a+Number(p.monto||0),0),hV=hist.filter(p=>!p.pagado).some(p=>est(p)==='vencido');return`<div class="card"><div style="display:flex;align-items:start;gap:12px;margin-bottom:14px">${avEl(c.nombre,'conocido',true)}<div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;gap:6px"><div style="font-size:15px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.nombre}</div>${bdg(sal>0?(hV?'vencido':'pendiente'):'pagado')}</div>${c.telefono?`<div style="font-size:12px;color:var(--text-mute)"><i class="ti ti-phone" style="font-size:11px"></i> ${c.telefono}</div>`:''}</div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px;background:var(--surface-2);border-radius:var(--r);margin-bottom:12px"><div class="sm"><div class="smv">${hist.length}</div><div class="sml">Pedidos</div></div><div class="sm"><div class="smv" style="font-size:13px">${$m(tot)}</div><div class="sml">Total</div></div><div class="sm"><div class="smv" style="font-size:13px;color:${sal>0?'var(--accent)':'var(--accent)'}">${$m(sal)}</div><div class="sml">Pendiente</div></div></div>${c.notas?`<div style="font-size:12px;color:var(--text-mute);font-style:italic;margin-bottom:12px;padding:8px;background:var(--surface-2);border-radius:var(--r)">${c.notas}</div>`:''}<div style="display:flex;gap:6px"><button class="btn-s" style="flex:1;font-size:12px" onclick="edCl('${c.id}')"><i class="ti ti-edit"></i> Editar</button><button class="btn-d" onclick="borCl('${c.id}')"><i class="ti ti-trash"></i></button></div></div>`}).join('')
+  g('cl-grid').innerHTML=f.map(c=>{const sal=sCl(c.id),hist=S.pedidos.filter(p=>p.clienteId===c.id),tot=hist.reduce((a,p)=>a+Number(p.monto||0),0),hV=hist.filter(p=>!p.pagado).some(p=>est(p)==='vencido');return`<div class="card"><div style="display:flex;align-items:start;gap:12px;margin-bottom:14px">${avEl(c.nombre,'conocido',true)}<div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;gap:6px"><div style="font-size:15px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.nombre}</div>${bdg(sal>0?(hV?'vencido':'pendiente'):'pagado')}</div>${c.telefono?`<div style="font-size:12px;color:var(--text-mute)"><i class="ti ti-phone" style="font-size:11px"></i> ${c.telefono}</div>`:''}</div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px;background:var(--surface-2);border-radius:var(--r);margin-bottom:12px"><div class="sm"><div class="smv">${hist.length}</div><div class="sml">Pedidos</div></div><div class="sm"><div class="smv" style="font-size:13px">${$m(tot)}</div><div class="sml">Total</div></div><div class="sm"><div class="smv" style="font-size:13px;color:${sal>0?'var(--accent)':'var(--accent)'}">${$m(sal)}</div><div class="sml">Pendiente</div></div></div>${c.notas?`<div style="font-size:12px;color:var(--text-mute);font-style:italic;margin-bottom:12px;padding:8px;background:var(--surface-2);border-radius:var(--r)">${c.notas}</div>`:''}<div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn-s" style="flex:1;font-size:12px;min-width:90px" onclick="verHistorial('${c.id}','cliente')"><i class="ti ti-history"></i> Historial</button>
+          <button class="btn-s" style="font-size:12px" onclick="edCl('${c.id}')"><i class="ti ti-edit"></i></button>
+          <button class="btn-d" onclick="borCl('${c.id}')"><i class="ti ti-trash"></i></button>
+        </div></div>`}).join('')
 }
 window.edCl=id=>{const c=S.clientes.find(x=>x.id===id);if(c)openModCl(c)}
 window.borCl=async id=>{if(!confirm('¿Eliminar cliente?'))return;try{await deleteDoc(doc(db,'clientes',id));toast('Eliminado')}catch(e){toast('Error',false)}}
@@ -781,7 +803,11 @@ g('scl')?.addEventListener('input',rClientes)
 
 function rEmpresas(){
   g('em-cnt').textContent=`${S.empresas.length} empresas`;g('em-empty').classList.toggle('hidden',S.empresas.length>0)
-  g('em-grid').innerHTML=S.empresas.map(e=>{const sal=sEm(e.id),hist=S.pedidos.filter(p=>p.empresaId===e.id),tot=hist.reduce((a,p)=>a+Number(p.monto||0),0),hV=hist.filter(p=>!p.pagado).some(p=>est(p)==='vencido');return`<div class="card"><div style="display:flex;align-items:start;gap:12px;margin-bottom:14px"><div style="width:44px;height:44px;border-radius:12px;background:var(--accent-soft);border:2px solid var(--border-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-building" style="color:var(--accent);font-size:20px"></i></div><div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;gap:6px"><div style="font-size:15px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.nombre}</div>${bdg(sal>0?(hV?'vencido':'pendiente'):'pagado')}</div>${e.contacto?`<div style="font-size:12px;color:var(--text-dim)">${e.contacto}</div>`:''}</div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px;background:var(--surface-2);border-radius:var(--r);margin-bottom:12px"><div class="sm"><div class="smv">${e.trabajadores||'—'}</div><div class="sml">Trabaj.</div></div><div class="sm"><div class="smv" style="font-size:13px">${$m(tot)}</div><div class="sml">Facturado</div></div><div class="sm"><div class="smv" style="font-size:13px;color:${sal>0?'var(--accent)':'var(--accent)'}">${$m(sal)}</div><div class="sml">Pendiente</div></div></div>${e.notas?`<div style="font-size:12px;color:var(--text-mute);font-style:italic;margin-bottom:12px;padding:8px;background:var(--surface-2);border-radius:var(--r)">${e.notas}</div>`:''}<div style="display:flex;gap:6px"><button class="btn-s" style="flex:1;font-size:12px" onclick="edEm('${e.id}')"><i class="ti ti-edit"></i> Editar</button><button class="btn-d" onclick="borEm('${e.id}')"><i class="ti ti-trash"></i></button></div></div>`}).join('')
+  g('em-grid').innerHTML=S.empresas.map(e=>{const sal=sEm(e.id),hist=S.pedidos.filter(p=>p.empresaId===e.id),tot=hist.reduce((a,p)=>a+Number(p.monto||0),0),hV=hist.filter(p=>!p.pagado).some(p=>est(p)==='vencido');return`<div class="card"><div style="display:flex;align-items:start;gap:12px;margin-bottom:14px"><div style="width:44px;height:44px;border-radius:12px;background:var(--accent-soft);border:2px solid var(--border-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-building" style="color:var(--accent);font-size:20px"></i></div><div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;gap:6px"><div style="font-size:15px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.nombre}</div>${bdg(sal>0?(hV?'vencido':'pendiente'):'pagado')}</div>${e.contacto?`<div style="font-size:12px;color:var(--text-dim)">${e.contacto}</div>`:''}</div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px;background:var(--surface-2);border-radius:var(--r);margin-bottom:12px"><div class="sm"><div class="smv">${e.trabajadores||'—'}</div><div class="sml">Trabaj.</div></div><div class="sm"><div class="smv" style="font-size:13px">${$m(tot)}</div><div class="sml">Facturado</div></div><div class="sm"><div class="smv" style="font-size:13px;color:${sal>0?'var(--accent)':'var(--accent)'}">${$m(sal)}</div><div class="sml">Pendiente</div></div></div>${e.notas?`<div style="font-size:12px;color:var(--text-mute);font-style:italic;margin-bottom:12px;padding:8px;background:var(--surface-2);border-radius:var(--r)">${e.notas}</div>`:''}<div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn-s" style="flex:1;font-size:12px;min-width:90px" onclick="verHistorial('${e.id}','empresa')"><i class="ti ti-history"></i> Historial</button>
+          <button class="btn-s" style="font-size:12px" onclick="edEm('${e.id}')"><i class="ti ti-edit"></i></button>
+          <button class="btn-d" onclick="borEm('${e.id}')"><i class="ti ti-trash"></i></button>
+        </div></div>`}).join('')
 }
 window.edEm=id=>{const e=S.empresas.find(x=>x.id===id);if(e)openModEm(e)}
 window.borEm=async id=>{if(!confirm('¿Eliminar empresa?'))return;try{await deleteDoc(doc(db,'empresas',id));toast('Eliminada')}catch(e){toast('Error',false)}}
@@ -812,10 +838,80 @@ g('btn-next')?.addEventListener('click',()=>{const d=new Date(mFecha+'T12:00:00'
 g('mf-dp')?.addEventListener('change',e=>{mFecha=e.target.value;rMenu()})
 
 function rPagos(){
-  const cd=[...S.clientes.map(c=>({...c,_t:'cliente',saldo:sCl(c.id)})),...S.empresas.map(e=>({...e,_t:'empresa',saldo:sEm(e.id)}))].filter(x=>x.saldo>0).sort((a,b)=>b.saldo-a.saldo)
-  g('pag-sub').textContent=`${cd.length} cuentas · ${$m(cd.reduce((a,x)=>a+x.saldo,0))} por cobrar`
-  g('pag-empty').classList.toggle('hidden',cd.length>0)
-  g('pag-grid').innerHTML=cd.map(item=>{const pend=S.pedidos.filter(p=>(item._t==='cliente'?p.clienteId===item.id:p.empresaId===item.id)&&!p.pagado),hV=pend.some(p=>est(p)==='vencido');return`<div class="card" style="${hV?'border-color:var(--danger)':''}"><div style="display:flex;align-items:start;gap:12px;margin-bottom:14px">${avEl(item.nombre,item._t,true)}<div style="flex:1"><div style="font-size:15px;font-weight:700;color:var(--text)">${item.nombre}</div><div style="font-size:12px;color:var(--text-mute)">${item._t==='empresa'?'Empresa':'Frecuente'}</div><div style="font-size:26px;font-weight:800;color:var(--accent);margin-top:4px;font-family:var(--font-display);letter-spacing:-.03em;min-width:120px">${$m(item.saldo)}</div></div></div><div style="max-height:150px;overflow-y:auto;margin-bottom:14px;display:flex;flex-direction:column;gap:5px">${pend.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;background:var(--surface-2);border-radius:var(--r);padding:7px 10px;border:1px solid var(--border)"><span style="color:var(--text-dim)">${$f(p.fecha)} · ${p.plato||'—'}</span><div style="display:flex;align-items:center;gap:6px"><span style="font-weight:700">${$m(p.monto)}</span>${bdg(est(p))}</div></div>`).join('')}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="btn-s" onclick="opAb('${item.id}','${item._t}',${item.saldo})"><i class="ti ti-cash"></i> Abonar</button><button class="btn-p" onclick="pagTodo('${item.id}','${item._t}')"><i class="ti ti-check"></i> Pagar todo</button></div></div>`}).join('')
+  // Clientes y empresas con saldo
+  const cd=[
+    ...S.clientes.map(c=>({...c,_t:'cliente',saldo:sCl(c.id)})),
+    ...S.empresas.map(e=>({...e,_t:'empresa',saldo:sEm(e.id)}))
+  ].filter(x=>x.saldo>0).sort((a,b)=>b.saldo-a.saldo)
+
+  // Pedidos genéricos (sin cliente ni empresa) no pagados — agrupar como "Clientes varios"
+  const pendGral=S.pedidos.filter(p=>!p.clienteId&&!p.empresaId&&!p.pagado)
+  const saldoGral=pendGral.reduce((a,p)=>a+Number(p.monto||0),0)
+
+  const total=cd.reduce((a,x)=>a+x.saldo,0)+saldoGral
+  const totalCuentas=cd.length+(saldoGral>0?1:0)
+
+  g('pag-sub').textContent=`${totalCuentas} cuentas · ${$m(total)} por cobrar`
+  g('pag-empty').classList.toggle('hidden',totalCuentas>0)
+
+  // Render clientes/empresas
+  const cardsCD=cd.map(item=>{
+    const pend=S.pedidos.filter(p=>(item._t==='cliente'?p.clienteId===item.id:p.empresaId===item.id)&&!p.pagado)
+    const hV=pend.some(p=>est(p)==='vencido')
+    return`<div class="card" style="${hV?'border-color:var(--danger)':''}">
+      <div style="display:flex;align-items:start;gap:12px;margin-bottom:14px">
+        ${avEl(item.nombre,item._t,true)}
+        <div style="flex:1">
+          <div style="font-size:15px;font-weight:700;color:var(--text)">${item.nombre}</div>
+          <div style="font-size:12px;color:var(--text-mute)">${item._t==='empresa'?'Empresa':'Cliente frecuente'}</div>
+          <div style="font-size:26px;font-weight:800;color:var(--accent);margin-top:4px;font-family:var(--font-display);letter-spacing:-.03em">${$m(item.saldo)}</div>
+          ${hV?`<div style="font-size:11px;color:var(--danger)"><i class="ti ti-alert-triangle" style="font-size:11px"></i> Tiene pedidos vencidos</div>`:''}
+        </div>
+      </div>
+      <div style="max-height:150px;overflow-y:auto;margin-bottom:14px;display:flex;flex-direction:column;gap:5px">
+        ${pend.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;background:var(--surface-2);border-radius:var(--r);padding:8px 10px;border:1px solid var(--border)">
+          <span style="color:var(--text-dim)">${$f(p.fecha)} · ${p.plato||'—'}</span>
+          <div style="display:flex;align-items:center;gap:6px;white-space:nowrap"><span style="font-weight:700">${$m(p.monto)}</span>${bdg(est(p))}</div>
+        </div>`).join('')}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <button class="btn-s" onclick="opAb('${item.id}','${item._t}',${item.saldo})"><i class="ti ti-cash"></i> Abonar</button>
+        <button class="btn-p" onclick="pagTodo('${item.id}','${item._t}')"><i class="ti ti-check"></i> Pagar todo</button>
+      </div>
+      <button class="btn-s" style="width:100%;font-size:12px" onclick="verHistorial('${item.id}','${item._t}')"><i class="ti ti-history"></i> Ver historial de cuenta</button>
+    </div>`
+  }).join('')
+
+  // Render pedidos genéricos agrupados
+  const cardGral=saldoGral>0?`<div class="card">
+    <div style="display:flex;align-items:start;gap:12px;margin-bottom:14px">
+      <div class="av av-lg av-gy"><i class="ti ti-users" style="font-size:16px"></i></div>
+      <div style="flex:1">
+        <div style="font-size:15px;font-weight:700;color:var(--text)">Clientes varios</div>
+        <div style="font-size:12px;color:var(--text-mute)">Pedidos sin cliente asignado</div>
+        <div style="font-size:26px;font-weight:800;color:var(--accent);margin-top:4px;font-family:var(--font-display);letter-spacing:-.03em">${$m(saldoGral)}</div>
+      </div>
+    </div>
+    <div style="max-height:180px;overflow-y:auto;margin-bottom:14px;display:flex;flex-direction:column;gap:5px">
+      ${pendGral.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;background:var(--surface-2);border-radius:var(--r);padding:8px 10px;border:1px solid var(--border)">
+        <div style="min-width:0;flex:1">
+          <div style="font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.plato||'—'}</div>
+          <div style="color:var(--text-mute);font-size:10px">${$f(p.fecha)} · ${p.turno||''} ${p.notas?'· '+p.notas:''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;white-space:nowrap;margin-left:8px">
+          <span style="font-weight:700">${$m(p.monto)}</span>${bdg(est(p))}
+          <button class="btn-ic" onclick="pagarPGral('${p.id}')" title="Marcar pagado" style="color:var(--accent)"><i class="ti ti-check"></i></button>
+        </div>
+      </div>`).join('')}
+    </div>
+    <div style="font-size:12px;color:var(--text-mute);text-align:center;padding:6px 0">Marca cada pedido como pagado individualmente</div>
+  </div>`:'';
+
+  g('pag-grid').innerHTML=cardsCD+cardGral
+}
+window.pagarPGral=async id=>{
+  try{await updateDoc(doc(db,'pedidos',id),{pagado:true});toast('Pedido marcado como pagado')}
+  catch(e){toast('Error',false)}
 }
 window.opAb=(id,t,s)=>{abTgt={id,t};g('mab-s').textContent=$m(s);g('mab-mo').value='';g('mab-ti').textContent=`Abonar — ${t==='cliente'?S.clientes.find(x=>x.id===id)?.nombre:S.empresas.find(x=>x.id===id)?.nombre}`;openM('mod-ab')}
 window.pagTodo=async(id,t)=>{const pend=S.pedidos.filter(p=>(t==='cliente'?p.clienteId===id:p.empresaId===id)&&!p.pagado);try{await Promise.all(pend.map(p=>updateDoc(doc(db,'pedidos',p.id),{pagado:true})));toast('Cuenta saldada')}catch(e){toast('Error',false)}}
@@ -824,26 +920,32 @@ g('btn-gab').onclick=async()=>{
   if(!monto||monto<=0){toast('Monto inválido',false);return}
   if(!abTgt)return
   const{id,tipo}=abTgt
-  // Saldo efectivo actual (pedidos - pagos ya registrados)
-  const deudaActual=tipo==='cliente'?sCl(id):sEm(id)
-  if(monto>deudaActual+0.01){toast('El abono supera la deuda',false);return}
-  // Marcar pedidos pagados (del más antiguo al más nuevo)
   const pendAll=S.pedidos.filter(p=>(tipo==='cliente'?p.clienteId===id:p.empresaId===id)&&!p.pagado).sort((a,b)=>a.fecha.localeCompare(b.fecha))
-  let rest=monto;const ups=[]
+  const deudaActual=pendAll.reduce((a,p)=>a+Number(p.monto||0),0)
+  let rest=monto
+  const ups=[]
   for(const p of pendAll){
     if(rest<=0)break
-    if(rest>=Number(p.monto)){ups.push(updateDoc(doc(db,'pedidos',p.id),{pagado:true}));rest-=Number(p.monto)}
+    const pm=Number(p.monto||0)
+    if(rest>=pm){
+      // Abono cubre pedido completo → marcar pagado
+      ups.push(updateDoc(doc(db,'pedidos',p.id),{pagado:true}))
+      rest-=pm
+    } else {
+      // Abono parcial → reducir monto del pedido
+      ups.push(updateDoc(doc(db,'pedidos',p.id),{monto:Math.round((pm-rest)*100)/100}))
+      rest=0
+    }
   }
   try{
     await Promise.all(ups)
-    // Registrar el pago — sCl/sEm lo descontará automáticamente
     await addDoc(collection(db,'pagos'),{
       ...(tipo==='cliente'?{clienteId:id}:{empresaId:id}),
       monto,medio:g('mab-me').value,fecha:hoy(),creadoEn:serverTimestamp()
     })
     const saldoRestante=Math.max(0,deudaActual-monto)
     closeM('mod-ab')
-    toast(saldoRestante<=0?'Cuenta saldada completamente':`Abono ${$m(monto)} · Saldo restante: ${$m(saldoRestante)}`)
+    toast(saldoRestante<=0?'Cuenta saldada completamente':`Abono ${$m(monto)} registrado · Resta: ${$m(saldoRestante)}`)
   }catch(e){toast('Error al registrar abono',false)}
 }
 
@@ -916,6 +1018,158 @@ function updateTopbarDate(){
 }
 updateTopbarDate()
 setInterval(updateTopbarDate,60000)
+// ── HISTORIAL DE CUENTA ──────────────────────────────────────
+let histTarget = null
+let histCurrentTab = 'pagos'
+
+window.verHistorial = (id, tipo) => {
+  histTarget = {id, tipo}
+  histCurrentTab = 'pagos'
+  const nombre = tipo === 'cliente'
+    ? S.clientes.find(x=>x.id===id)?.nombre
+    : S.empresas.find(x=>x.id===id)?.nombre
+  const m = gMes(), y = gAnio()
+  const mesNom = MESES[m-1]
+  g('hist-title').textContent = nombre || 'Historial'
+  g('hist-period').textContent = `${mesNom} ${y} · Período seleccionado`
+
+  // Pedidos del período
+  const pedidosMes = S.pedidos.filter(p => {
+    const d = new Date(p.fecha+'T12:00:00')
+    return d.getFullYear()===y && d.getMonth()+1===m &&
+      (tipo==='cliente' ? p.clienteId===id : p.empresaId===id)
+  })
+  const totalConsumido = pedidosMes.reduce((a,p)=>a+Number(p.monto||0),0)
+  const totalPagado = pedidosMes.filter(p=>p.pagado).reduce((a,p)=>a+Number(p.monto||0),0)
+
+  // Pagos del período (colección pagos)
+  const pagosMes = S.pagos.filter(p => {
+    if(tipo==='cliente' ? p.clienteId!==id : p.empresaId!==id) return false
+    const d = new Date(p.fecha+'T12:00:00')
+    return d.getFullYear()===y && d.getMonth()+1===m
+  })
+  const totalAbonado = pagosMes.reduce((a,p)=>a+Number(p.monto||0),0)
+
+  const saldoActual = tipo==='cliente' ? sCl(id) : sEm(id)
+
+  g('hist-resumen').innerHTML = [
+    {l:'Consumido',v:$m(totalConsumido),c:'var(--text)'},
+    {l:'Abonado',v:$m(totalAbonado),c:'var(--accent)'},
+    {l:'Saldo actual',v:$m(saldoActual),c:saldoActual>0?'var(--warn)':'var(--accent)'},
+  ].map(s=>`<div style="background:var(--surface-2);border:1px solid var(--border-soft);border-radius:14px;padding:12px;text-align:center">
+    <div style="font-size:11px;font-weight:600;color:var(--text-mute);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">${s.l}</div>
+    <div style="font-size:20px;font-weight:800;font-family:var(--font-display);letter-spacing:-.02em;color:${s.c}">${s.v}</div>
+  </div>`).join('')
+
+  renderHistContent(pagosMes, pedidosMes)
+  openM('mod-hist')
+}
+
+window.histTab = tab => {
+  histCurrentTab = tab
+  g('hist-tab-pagos').className = tab==='pagos' ? 'btn-p' : 'btn-s'
+  g('hist-tab-consumos').className = tab==='consumos' ? 'btn-p' : 'btn-s'
+  g('hist-tab-pagos').style.fontSize = '12px'
+  g('hist-tab-pagos').style.padding = '6px 14px'
+  g('hist-tab-consumos').style.fontSize = '12px'
+  g('hist-tab-consumos').style.padding = '6px 14px'
+  if(!histTarget) return
+  const {id, tipo} = histTarget
+  const m=gMes(), y=gAnio()
+  const pagosMes = S.pagos.filter(p=>{
+    if(tipo==='cliente'?p.clienteId!==id:p.empresaId!==id) return false
+    const d=new Date(p.fecha+'T12:00:00')
+    return d.getFullYear()===y&&d.getMonth()+1===m
+  })
+  const pedidosMes = S.pedidos.filter(p=>{
+    const d=new Date(p.fecha+'T12:00:00')
+    return d.getFullYear()===y&&d.getMonth()+1===m&&
+      (tipo==='cliente'?p.clienteId===id:p.empresaId===id)
+  })
+  renderHistContent(pagosMes, pedidosMes)
+}
+
+function renderHistContent(pagosMes, pedidosMes) {
+  const cont = g('hist-content')
+  if(!cont) return
+
+  if(histCurrentTab === 'pagos') {
+    if(!pagosMes.length) {
+      cont.innerHTML = `<div class="empty" style="padding:28px">
+        <div class="ei"><i class="ti ti-cash"></i></div>
+        <p>Sin pagos registrados en este período</p>
+      </div>`
+      return
+    }
+    // Sort by fecha desc
+    const sorted = [...pagosMes].sort((a,b)=>b.fecha.localeCompare(a.fecha))
+    const medioIcon = m => m==='Yape'
+      ? `<span style="background:#5d2bbd;color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:6px">Y</span>`
+      : m==='Mixto'
+      ? `<span class="badge ch-mx">${m}</span>`
+      : `<span class="badge ch-ef">${m}</span>`
+
+    cont.innerHTML = sorted.map((p,i) => `
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface-2);border:1px solid var(--border-soft);border-radius:14px;${i===0?'border-color:var(--accent)':''}">
+        <div style="width:36px;height:36px;border-radius:10px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i class="ti ti-cash" style="color:var(--accent);font-size:16px"></i>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;color:var(--text)">Abono registrado</div>
+          <div style="font-size:11px;color:var(--text-mute);margin-top:2px;display:flex;align-items:center;gap:6px">
+            <i class="ti ti-calendar" style="font-size:10px"></i>
+            ${new Date(p.fecha+'T12:00:00').toLocaleDateString('es-PE',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+          <div style="font-size:16px;font-weight:800;font-family:var(--font-display);color:var(--accent)">+${$m(p.monto)}</div>
+          ${medioIcon(p.medio||'Efectivo')}
+        </div>
+      </div>`).join('')
+
+    // Total row
+    const total = pagosMes.reduce((a,p)=>a+Number(p.monto||0),0)
+    cont.innerHTML += `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-top:1px solid var(--border-soft);margin-top:4px">
+      <span style="font-size:12px;font-weight:600;color:var(--text-mute);text-transform:uppercase;letter-spacing:.08em">Total abonado</span>
+      <span style="font-size:18px;font-weight:800;font-family:var(--font-display);color:var(--accent)">${$m(total)}</span>
+    </div>`
+  } else {
+    // CONSUMOS
+    if(!pedidosMes.length) {
+      cont.innerHTML = `<div class="empty" style="padding:28px">
+        <div class="ei"><i class="ti ti-clipboard-list"></i></div>
+        <p>Sin consumos en este período</p>
+      </div>`
+      return
+    }
+    const sorted = [...pedidosMes].sort((a,b)=>b.fecha.localeCompare(a.fecha))
+    cont.innerHTML = sorted.map(p => `
+      <div style="display:flex;align-items:center;gap:12px;padding:11px 14px;background:var(--surface-2);border:1px solid var(--border-soft);border-radius:14px">
+        <div style="width:36px;height:36px;border-radius:10px;background:${p.pagado?'var(--accent-soft)':'var(--warn-soft)'};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i class="ti ti-salad" style="color:${p.pagado?'var(--accent)':'var(--warn)'};font-size:15px"></i>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.plato||'—'}</div>
+          <div style="font-size:11px;color:var(--text-mute);margin-top:2px;display:flex;align-items:center;gap:8px">
+            <span><i class="ti ti-calendar" style="font-size:10px"></i> ${new Date(p.fecha+'T12:00:00').toLocaleDateString('es-PE',{weekday:'short',day:'numeric',month:'short'})}</span>
+            <span style="text-transform:capitalize">${p.turno||''}</span>
+            ${p.notas?`<span style="color:var(--warn)"><i class="ti ti-message-circle" style="font-size:10px"></i> ${p.notas}</span>`:''}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+          <div style="font-size:15px;font-weight:700;font-family:var(--font-display);color:var(--text);white-space:nowrap">${$m(p.monto)}</div>
+          ${bdg(est(p))}
+        </div>
+      </div>`).join('')
+
+    const total = pedidosMes.reduce((a,p)=>a+Number(p.monto||0),0)
+    cont.innerHTML += `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-top:1px solid var(--border-soft);margin-top:4px">
+      <span style="font-size:12px;font-weight:600;color:var(--text-mute);text-transform:uppercase;letter-spacing:.08em">Total consumido</span>
+      <span style="font-size:18px;font-weight:800;font-family:var(--font-display);color:var(--text)">${$m(total)}</span>
+    </div>`
+  }
+}
+
 navTo('dashboard')
 </script>
 </body>
