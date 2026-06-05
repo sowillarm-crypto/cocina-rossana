@@ -322,7 +322,7 @@ input[type=number].field{font-family:var(--font-mono)}
 /* ── CHART ── */
 .cw{display:flex;align-items:flex-end;gap:3px;height:130px;padding-top:22px}
 .cc{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;position:relative}
-.cbc{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center;background:var(--surface-2);border-radius:6px;overflow:hidden;min-height:4px}
+.cbc{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center;background:transparent;border-radius:4px;overflow:hidden;min-height:4px;border-bottom:1px solid var(--border-soft)}
 .cb{width:100%;min-height:0;border-radius:4px 4px 0 0;transition:height .6s cubic-bezier(.22,.68,0,1.2);cursor:pointer;position:relative}
 .cb:hover{opacity:.85}
 .cc:hover .cb-tip{opacity:1}
@@ -667,7 +667,7 @@ html:not(.dark) .pdf-opt.active i,html:not(.dark) .pdf-opt.active span{color:#4d
         </div>
         <div class="g3">
           <div class="card"><div class="ch"><div class="ct"><i class="ti ti-cash"></i> Medios de pago</div></div><div id="pay-bars"></div></div>
-          <div class="card"><div class="ch"><div class="ct"><i class="ti ti-chart-bar"></i> Ingresos diarios (últimos 14 días)</div></div><div class="cw" id="chart"></div></div>
+          <div class="card"><div class="ch"><div class="ct"><i class="ti ti-chart-bar"></i> Ingresos diarios · últimos 14 días</div></div><div class="cw" id="chart"></div></div>
         </div>
         <div class="card" style="margin-top:14px">
           <div class="ch"><div class="ct"><i class="ti ti-history"></i> Últimos pedidos</div></div>
@@ -1017,18 +1017,34 @@ function rDash(){
   g('ca-list').innerHTML=ctas.length===0?`<div class="empty" style="padding:20px"><div class="ei" style="background:var(--accent-soft);color:var(--accent)"><i class="ti ti-check"></i></div><p style="color:var(--accent)">Todo cobrado</p></div>`:ctas.sort((a,b)=>b.saldo-a.saldo).map(c=>{const pp=S.pedidos.filter(p=>(p.clienteId===c.id||p.empresaId===c.id)&&!p.pagado),turns=[...new Set(pp.map(p=>p.turno))],hV=pp.some(p=>est(p)==='vencido');return`<div class="ri"><div class="ri-l">${avEl(c.nombre,c._t)}<div><div class="rn">${c.nombre}</div><div class="rs">${c._t==='empresa'?'Empresa':'Frecuente'}</div><div class="tdots">${turns.map(t=>`<div class="tdot" style="background:${TR[t]?.c||'#999'}"></div>`).join('')}</div></div></div><div style="text-align:right;flex-shrink:0"><div style="font-size:14px;font-weight:800;color:var(--accent);font-family:var(--font-display);letter-spacing:-.02em;white-space:nowrap">${$m(c.saldo)}</div>${bdg(hV?'vencido':'pendiente')}</div></div>`}).join('')
   const pag=ps.filter(p=>p.pagado),tot=pag.reduce((a,p)=>a+Number(p.monto||0),0),por=m=>pag.filter(p=>p.medio===m).reduce((a,p)=>a+Number(p.monto||0),0)
   g('pay-bars').innerHTML=[{l:'Efectivo',v:por('Efectivo'),c:'rgba(197,247,62,0.8)'},{l:'Yape',v:por('Yape'),c:'#5d2bbd'},{l:'Mixto',v:por('Mixto'),c:'var(--warn)'}].map(it=>`<div class="pb"><div class="pb-r"><span class="pb-l">${it.l}</span><span class="pb-p">${tot?Math.round(it.v/tot*100):0}%</span></div><div class="pb-v">${$m(it.v)}</div><div class="pbar"><div class="pbar-f" style="width:${tot?Math.round(it.v/tot*100):0}%;background:${it.c}"></div></div></div>`).join('')
-  const m2=gMes(),y2=gAnio(),d2=new Date(y2,m2,0).getDate(),data=[]
-  for(let d=1;d<=d2;d++){
+  // Chart: show 14 days ending TODAY (or last day with data if viewing past month)
+  const m2=gMes(),y2=gAnio()
+  const today2=new Date()
+  const isCurrentMonth=(m2===today2.getMonth()+1&&y2===today2.getFullYear())
+  // End day = today if current month, else last day of selected month
+  const endDay=isCurrentMonth?today2.getDate():new Date(y2,m2,0).getDate()
+  const startDay=Math.max(1,endDay-13)
+  const data=[]
+  for(let d=startDay;d<=endDay;d++){
     const fd=`${y2}-${String(m2).padStart(2,'0')}-${String(d).padStart(2,'0')}`
-    // Include ALL pedidos (pagado + pendiente) for the chart
     const total=S.pedidos.filter(p=>p.fecha===fd).reduce((a,p)=>a+Number(p.monto||0),0)
-    data.push({d,v:total})
+    data.push({d,v:total,fd})
   }
-  const show=data.slice(-14),max=Math.max(...show.map(x=>x.v),1)
-  g('chart').innerHTML=show.map(x=>{
-    const pct=x.v>0?Math.max(x.v/max*100,4):0
-    return`<div class="cc"><div class="cbc"><div class="cb" style="height:${pct}%;background:${x.v>0?'rgba(197,247,62,0.72)':'transparent'}"></div></div><div class="cb-tip">${$m(x.v)}</div><div class="cl">${x.d}</div></div>`
+  const maxV=Math.max(...data.map(x=>x.v),0.01)
+  const hasData=data.some(x=>x.v>0)
+  const isToday2=(fd)=>fd===hoy()
+  g('chart').innerHTML=data.map(x=>{
+    const pct=x.v>0?Math.max(x.v/maxV*100,5):0
+    const isTod=isToday2(x.fd)
+    return`<div class="cc"><div class="cbc"><div class="cb" style="height:${pct}%;background:${x.v>0?'rgba(197,247,62,0.8)':'transparent'};${isTod&&x.v===0?'border-bottom:2px solid rgba(197,247,62,0.3)':''}"></div></div><div class="cb-tip">${x.v>0?$m(x.v):''}</div><div class="cl" style="${isTod?'color:rgba(197,247,62,0.8);font-weight:700':''}">${x.d}</div></div>`
   }).join('')
+  // If no data at all, show message
+  if(!hasData){
+    g('chart').innerHTML=`<div style="flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;color:var(--text-mute)">
+      <i class="ti ti-chart-bar" style="font-size:24px;opacity:.3"></i>
+      <span style="font-size:11px">Sin ingresos en este período</span>
+    </div>`
+  }
   const ult=S.pedidos.slice(0,8)
   g('ut').innerHTML=ult.map(p=>`<tr><td><div class="tdm">${nom(p)}</div><div class="tds">${$f(p.fecha)}</div></td><td>${bdgT(p.turno)}</td><td><div style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.plato||'—'}</div>${p.notas?`<div style="font-size:10px;color:var(--warn)"><i class="ti ti-message-circle" style="font-size:9px"></i> ${p.notas}</div>`:''}</td><td>${chM(p.medio)}</td><td style="font-weight:700;color:var(--text);font-family:var(--font-mono);white-space:nowrap;min-width:90px">${$m(p.monto)}</td><td>${bdg(est(p))}</td><td><div style="display:flex;gap:3px"><button class="btn-ic" onclick="edP('${p.id}')"><i class="ti ti-edit"></i></button>${!p.pagado?`<button class="btn-ic" onclick="pagP('${p.id}')" style="color:var(--accent)"><i class="ti ti-check"></i></button>`:''}</div></td></tr>`).join('')
   if(!ult.length)g('ut').innerHTML=`<tr><td colspan="7" style="text-align:center;color:var(--text-mute);padding:24px">Sin pedidos aún</td></tr>`
