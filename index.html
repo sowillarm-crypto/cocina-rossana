@@ -1364,7 +1364,7 @@ let pdfPeriodo='mes', pdfContenido='todo'
 
 g('btn-pdf').onclick=()=>openPdfModal()
 
-function openPdfModal(){
+window.openPdfModal=function openPdfModal(){
   pdfPeriodo='mes'; pdfContenido='todo'
   // Reset UI
   document.querySelectorAll('.pdf-opt[data-pdf-p]').forEach(b=>b.classList.remove('active'))
@@ -1416,7 +1416,7 @@ window.pdfSelContenido=tipo=>{
   updatePdfPreview()
 }
 
-function getPdfPedidos(){
+window.getPdfPedidos=function getPdfPedidos(){
   const m=gMes(),y=gAnio()
   const entVal=g('pdf-entidad')?.value||''
   let ps=S.pedidos.filter(p=>{
@@ -1439,7 +1439,7 @@ function getPdfPedidos(){
   return ps
 }
 
-function updatePdfPreview(){
+window.updatePdfPreview=function updatePdfPreview(){
   const ps=getPdfPedidos()
   const m=gMes(),y=gAnio()
   const total=ps.reduce((a,p)=>a+Number(p.monto||0),0)
@@ -1479,12 +1479,10 @@ function updatePdfPreview(){
     </div>`
 }
 
-function generarPDF(){
+window.generarPDF=function generarPDF(){
   const ps=getPdfPedidos()
   if(!ps.length){toast('Sin datos para exportar',false);return}
-  const s=document.createElement('script')
-  s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
-  s.onload=()=>{
+  const runPDF=()=>{
     const{jsPDF}=window.jspdf,doc=new jsPDF(),W=doc.internal.pageSize.getWidth()
     const m=gMes(),y=gAnio()
     const mesN=new Date(y,m-1,1).toLocaleDateString('es-PE',{month:'long',year:'numeric'})
@@ -1556,7 +1554,14 @@ function generarPDF(){
     closeM('mod-pdf')
     toast('PDF descargado')
   }
-  document.head.appendChild(s)
+  if(window.jspdf){
+    runPDF()
+  } else {
+    const s=document.createElement('script')
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
+    s.onload=runPDF
+    document.head.appendChild(s)
+  }
 }
 
 document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.add('hidden')}))
