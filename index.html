@@ -1483,73 +1483,253 @@ window.generarPDF=function generarPDF(){
   const ps=getPdfPedidos()
   if(!ps.length){toast('Sin datos para exportar',false);return}
   const runPDF=()=>{
-    const{jsPDF}=window.jspdf,doc=new jsPDF(),W=doc.internal.pageSize.getWidth()
+    const{jsPDF}=window.jspdf
+    const doc=new jsPDF({unit:'mm',format:'a4'})
+    const W=doc.internal.pageSize.getWidth()
+    const H=doc.internal.pageSize.getHeight()
     const m=gMes(),y=gAnio()
-    const mesN=new Date(y,m-1,1).toLocaleDateString('es-PE',{month:'long',year:'numeric'})
-    // Periodo label
-    let periodoLabel=mesN.toUpperCase()
-    if(pdfPeriodo==='dia'){const fd=g('pdf-dia')?.value;if(fd)periodoLabel=new Date(fd+'T12:00:00').toLocaleDateString('es-PE',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).toUpperCase()}
+    const mesN=MESES[m-1]+' '+y
+
+    // ── Color palette (light, professional) ──
+    const C={
+      black:[15,17,21],        // almost black for titles
+      dark:[40,44,52],         // dark gray for body text
+      mid:[100,108,118],       // medium gray for labels
+      light:[148,156,164],     // light gray for muted
+      line:[220,223,228],      // table lines
+      bg:[248,249,250],        // very light gray bg rows
+      white:[255,255,255],
+      accent:[34,80,34],       // dark green for headers
+      accentL:[236,247,236],   // very light green bg
+      green:[27,120,50],       // paid
+      orange:[180,100,0],      // pending
+      red:[185,45,45],         // overdue
+      accentPDF:[60,130,60],   // accent line
+    }
+
+    // ── Helper functions ──
+    const setF=(sz,bold=false,italic=false)=>{
+      doc.setFont('helvetica', bold&&italic?'bolditalic':bold?'bold':italic?'italic':'normal')
+      doc.setFontSize(sz)
+    }
+    const setC=(rgb)=>{ doc.setTextColor(rgb[0],rgb[1],rgb[2]) }
+    const line=(x1,y,x2,col=C.line,w=0.3)=>{
+      doc.setDrawColor(col[0],col[1],col[2])
+      doc.setLineWidth(w)
+      doc.line(x1,y,x2,y)
+    }
+    const rect=(x,y,w,h,col,stroke=false)=>{
+      if(stroke){doc.setDrawColor(col[0],col[1],col[2]);doc.setLineWidth(0.3);doc.rect(x,y,w,h,'S')}
+      else{doc.setFillColor(col[0],col[1],col[2]);doc.rect(x,y,w,h,'F')}
+    }
+
+    // ── Period label ──
+    let periodoLabel=mesN
+    if(pdfPeriodo==='dia'){
+      const fd=g('pdf-dia')?.value
+      if(fd) periodoLabel=new Date(fd+'T12:00:00').toLocaleDateString('es-PE',{weekday:'long',day:'numeric',month:'long',year:'numeric'})
+    }
     if(pdfPeriodo==='rango'){
       const de=g('pdf-desde')?.value,ha=g('pdf-hasta')?.value
-      if(de&&ha){const d1=new Date(de+'T12:00:00').getDate(),d2=new Date(ha+'T12:00:00').getDate();periodoLabel=`DÍAS ${d1} AL ${d2} DE ${mesN.toUpperCase()}`}
+      if(de&&ha){
+        const d1=new Date(de+'T12:00:00').getDate(),d2=new Date(ha+'T12:00:00').getDate()
+        periodoLabel=`${d1} al ${d2} de ${mesN}`
+      }
     }
-    // Header
-    doc.setFillColor(10,11,12);doc.rect(0,0,W,36,'F')
-    doc.setFillColor(197,247,62);doc.rect(0,0,4,36,'F')
-    doc.setFont('helvetica','bold');doc.setFontSize(15);doc.setTextColor(243,244,246)
-    doc.text('La Cocina de Rossana',12,14)
-    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(154,160,170)
-    doc.text('Estado de cuenta · '+periodoLabel,12,22)
-    const contenidoLabel={todo:'Pedidos y cobros',pedidos:'Solo pedidos',cobros:'Solo cobros pendientes'}
-    doc.text(contenidoLabel[pdfContenido]||'',12,28)
-    doc.text('Generado: '+new Date().toLocaleDateString('es-PE',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}),W-14,28,{align:'right'})
-    // Summary
+
+    // ── Entity filter ──
+    const entVal=g('pdf-entidad')?.value||''
+    let entNombre=''
+    if(entVal){
+      const[tipo,id]=entVal.split(':')
+      entNombre=tipo==='cl'?S.clientes.find(x=>x.id===id)?.nombre||'':S.empresas.find(x=>x.id===id)?.nombre||''
+    }
+
+    // ══════════════════════════════════════════
+    // PAGE HEADER — clean, minimal
+    // ══════════════════════════════════════════
+    // Top accent bar (thin, color)
+    rect(0,0,W,1.2,[60,160,60])
+
+    // Brand area
+    let cy=14
+    setF(18,true); setC(C.black)
+    doc.text('La Cocina de Rossana',14,cy)
+
+    setF(8,false,true); setC(C.mid)
+    doc.text('Estado de cuenta — Reporte financiero',14,cy+5)
+
+    // Right side: period + date
+    setF(8,true); setC(C.dark)
+    doc.text(periodoLabel.toUpperCase(),W-14,cy,{align:'right'})
+    setF(7); setC(C.light)
+    doc.text('Generado: '+new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'long',year:'numeric'}),W-14,cy+5,{align:'right'})
+
+    cy+=12
+    // Thin separator line
+    line(14,cy,W-14,C.line,0.4)
+    cy+=5
+
+    // Entity filter tag (if set)
+    if(entNombre){
+      rect(14,cy-3.5,W-28,6,C.accentL)
+      setF(7,true); setC(C.accent)
+      doc.text('CLIENTE / EMPRESA',16,cy)
+      setF(7,false); setC(C.dark)
+      doc.text(entNombre,55,cy)
+      cy+=10
+    }
+
+    // ══════════════════════════════════════════
+    // KPI SUMMARY — 4 cards, clean borders only
+    // ══════════════════════════════════════════
     const total=ps.reduce((a,p)=>a+Number(p.monto||0),0)
     const cobrado=ps.filter(p=>p.pagado).reduce((a,p)=>a+Number(p.monto||0),0)
     const pendiente=ps.filter(p=>!p.pagado).reduce((a,p)=>a+Number(p.monto||0),0)
-    let y2=46
-    doc.setFillColor(26,27,33);doc.rect(14,y2-5,W-28,32,'F')
-    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(154,160,170)
-    doc.text('PEDIDOS',20,y2);doc.text('COBRADO',58,y2);doc.text('PENDIENTE',96,y2);doc.text('TOTAL',140,y2)
-    doc.setFontSize(14);doc.setTextColor(243,244,246)
-    doc.text(String(ps.length),20,y2+10)
-    doc.setTextColor(197,247,62)
-    doc.text($m(cobrado),58,y2+10)
-    doc.setTextColor(255,179,71)
-    doc.text($m(pendiente),96,y2+10)
-    doc.setTextColor(243,244,246)
-    doc.text($m(total),140,y2+10)
-    y2+=38
-    // Entidad filter label
-    const entVal=g('pdf-entidad')?.value||''
-    if(entVal){
-      const[tipo,id]=entVal.split(':')
-      const nombre=tipo==='cl'?S.clientes.find(x=>x.id===id)?.nombre:S.empresas.find(x=>x.id===id)?.nombre
-      doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(197,247,62)
-      doc.text(`Cliente/empresa: ${nombre||''}`,14,y2);y2+=8
-    }
-    // Table header
-    doc.setFillColor(26,27,33);doc.rect(14,y2-5,W-28,8,'F')
-    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(197,247,62)
-    doc.text('FECHA',16,y2);doc.text('CLIENTE',44,y2);doc.text('TURNO',92,y2);doc.text('PLATO',114,y2);doc.text('MEDIO',150,y2);doc.text('MONTO',166,y2);doc.text('ESTADO',183,y2)
-    y2+=6
-    doc.setFont('helvetica','normal');doc.setFontSize(7.5)
-    const tl={desayuno:'Desayuno',almuerzo:'Almuerzo',cena:'Cena'}
-    ps.sort((a,b)=>a.fecha.localeCompare(b.fecha)).forEach((p,i)=>{
-      if(y2>268){doc.addPage();y2=20}
-      if(i%2===0){doc.setFillColor(22,23,28);doc.rect(14,y2-3.5,W-28,7,'F')}
-      doc.setTextColor(154,160,170)
-      doc.text($f(p.fecha),16,y2);doc.text((nom(p)||'').substring(0,22),44,y2)
-      doc.text(tl[p.turno]||p.turno,92,y2);doc.text((p.plato||'—').substring(0,16),114,y2);doc.text(p.medio||'—',150,y2)
-      doc.setFont('helvetica','bold');doc.setTextColor(243,244,246);doc.text($m(p.monto),166,y2)
-      const ec={pagado:[197,247,62],pendiente:[255,179,71],vencido:[255,100,100]}
-      doc.setTextColor(...(ec[est(p)]||[154,160,170]));doc.text(est(p).toUpperCase(),183,y2)
-      doc.setFont('helvetica','normal');y2+=7
+    const vencidos=ps.filter(p=>est(p)==='vencido').length
+
+    const kpis=[
+      {label:'PEDIDOS TOTALES',val:String(ps.length),col:C.dark,sub:'en el período'},
+      {label:'COBRADO',val:$m(cobrado),col:C.green,sub:`${ps.filter(p=>p.pagado).length} pedidos`},
+      {label:'POR COBRAR',val:$m(pendiente),col:vencidos>0?C.red:C.orange,sub:vencidos>0?`${vencidos} vencido${vencidos>1?'s':''}`:' '},
+      {label:'TOTAL FACTURADO',val:$m(total),col:C.black,sub:'cobrado + pendiente'},
+    ]
+    const kW=(W-28)/4-2
+    kpis.forEach((k,i)=>{
+      const kx=14+i*(kW+2.7)
+      // Border only — no fill
+      rect(kx,cy,kW,16,C.line,true)
+      // Top accent mark for total (last card)
+      if(i===3){ rect(kx,cy,kW,0.8,[60,160,60]) }
+      setF(7,true); setC(C.mid)
+      doc.text(k.label,kx+4,cy+5)
+      setF(11,true); setC(k.col)
+      doc.text(k.val,kx+4,cy+11.5)
+      setF(6); setC(C.light)
+      doc.text(k.sub,kx+4,cy+15)
     })
-    // Footer
-    const tot=doc.getNumberOfPages()
-    for(let i=1;i<=tot;i++){doc.setPage(i);doc.setFontSize(7);doc.setTextColor(107,114,128);doc.text(`${i}/${tot}`,W/2,290,{align:'center'});doc.text('La Cocina de Rossana',14,290);doc.text('dev. Erick Solier',W-14,290,{align:'right'})}
-    // Save with smart filename
+    cy+=22
+
+    // ══════════════════════════════════════════
+    // SECTION TITLE
+    // ══════════════════════════════════════════
+    const contenidoLabel={todo:'Resumen de pedidos',pedidos:'Pedidos',cobros:'Cobros pendientes'}
+    setF(8,true); setC(C.dark)
+    doc.text((contenidoLabel[pdfContenido]||'Pedidos').toUpperCase(),14,cy)
+    setF(7); setC(C.light)
+    doc.text(`${ps.length} registro${ps.length!==1?'s':''}`,W-14,cy,{align:'right'})
+    cy+=2
+    line(14,cy,W-14,[60,160,60],0.5)  // green accent line under title
+    cy+=5
+
+    // ══════════════════════════════════════════
+    // TABLE — no solid fills, just lines
+    // ══════════════════════════════════════════
+    const cols=[
+      {lbl:'FECHA',     x:14,  w:22, align:'left'},
+      {lbl:'CLIENTE',   x:37,  w:44, align:'left'},
+      {lbl:'TURNO',     x:82,  w:20, align:'left'},
+      {lbl:'PLATO',     x:103, w:38, align:'left'},
+      {lbl:'MEDIO',     x:142, w:18, align:'left'},
+      {lbl:'MONTO',     x:161, w:22, align:'right'},
+      {lbl:'ESTADO',    x:184, w:12, align:'left'},
+    ]
+
+    // Table header row — subtle bg, no heavy fill
+    rect(14,cy-3.5,W-28,7,C.bg)
+    line(14,cy-3.5,W-14,C.line,0.25)
+    cols.forEach(col=>{
+      setF(6.5,true); setC(C.mid)
+      const tx=col.align==='right'?col.x+col.w:col.x
+      doc.text(col.lbl,tx,cy,{align:col.align==='right'?'right':'left'})
+    })
+    cy+=1
+    line(14,cy,W-14,C.dark,0.4) // stronger line under header
+    cy+=3.5
+
+    // Table rows
+    const tl={desayuno:'Desayuno',almuerzo:'Almuerzo',cena:'Cena'}
+    const sorted=ps.slice().sort((a,b)=>a.fecha.localeCompare(b.fecha))
+    sorted.forEach((p,i)=>{
+      if(cy>272){
+        // Footer before page break
+        addFooter(doc,W,H,doc.getNumberOfPages())
+        doc.addPage()
+        cy=15
+        // Repeat column headers on new page
+        rect(14,cy-3.5,W-28,7,C.bg)
+        cols.forEach(col=>{
+          setF(6.5,true); setC(C.mid)
+          const tx=col.align==='right'?col.x+col.w:col.x
+          doc.text(col.lbl,tx,cy,{align:col.align==='right'?'right':'left'})
+        })
+        cy+=1; line(14,cy,W-14,C.dark,0.4); cy+=3.5
+      }
+
+      // Alternating very light bg (barely visible)
+      if(i%2===0){ rect(14,cy-3,W-28,6.5,[245,246,247]) }
+
+      const estado=est(p)
+      const statusCol={pagado:C.green,pendiente:C.orange,vencido:C.red}[estado]||C.mid
+
+      setF(7); setC(C.dark)
+      doc.text($f(p.fecha),cols[0].x,cy)
+      doc.text((nom(p)||'—').substring(0,20),cols[1].x,cy)
+
+      setF(6.5); setC(C.mid)
+      doc.text(tl[p.turno]||p.turno||'—',cols[2].x,cy)
+      doc.text((p.plato||'—').substring(0,18),cols[3].x,cy)
+      doc.text(p.medio||'—',cols[4].x,cy)
+
+      // Monto right-aligned, bold
+      setF(7,true); setC(C.dark)
+      doc.text($m(p.monto),cols[5].x+cols[5].w,cy,{align:'right'})
+
+      // Estado — colored text, no badge background
+      setF(6.5,true); setC(statusCol)
+      doc.text(estado.charAt(0).toUpperCase()+estado.slice(1),cols[6].x,cy)
+
+      // Bottom row line (very light)
+      line(14,cy+3,W-14,C.line,0.15)
+      cy+=6.5
+    })
+
+    // ══════════════════════════════════════════
+    // TOTALS ROW
+    // ══════════════════════════════════════════
+    cy+=2
+    line(14,cy,W-14,C.dark,0.4)
+    cy+=4
+    setF(7,true); setC(C.mid)
+    doc.text('TOTAL COBRADO',14,cy)
+    doc.text('TOTAL PENDIENTE',80,cy)
+    doc.text('TOTAL PERÍODO',155,cy,{align:'right'})
+    cy+=4
+    setF(9,true); setC(C.green)
+    doc.text($m(cobrado),14,cy)
+    setC(pendiente>0?C.orange:C.green)
+    doc.text($m(pendiente),80,cy)
+    setF(10,true); setC(C.black)
+    doc.text($m(total),155,cy,{align:'right'})
+
+    // ══════════════════════════════════════════
+    // FOOTER on all pages
+    // ══════════════════════════════════════════
+    function addFooter(doc,W,H,pageNum){
+      const tot=doc.getNumberOfPages()
+      line(14,H-12,W-14,[200,204,210],0.3)
+      setF(6.5); setC(C.light)
+      doc.text('La Cocina de Rossana  ·  Sistema de gestión',14,H-8)
+      doc.text('Documento confidencial — uso interno',W/2,H-8,{align:'center'})
+      doc.text(`Página ${pageNum} de ${tot}`,W-14,H-8,{align:'right'})
+    }
+    const totalPages=doc.getNumberOfPages()
+    for(let i=1;i<=totalPages;i++){
+      doc.setPage(i)
+      addFooter(doc,W,H,i)
+    }
+
+    // Save
     doc.save(g('pdf-filename')?.textContent||`rossana-${String(m).padStart(2,'0')}-${y}.pdf`)
     closeM('mod-pdf')
     toast('PDF descargado')
