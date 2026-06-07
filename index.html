@@ -386,6 +386,7 @@ html:not(.dark) .tb-al i,html:not(.dark) .tb-al span{color:#4d7d00}
 .pdf-opt.active{border-color:var(--accent);background:var(--accent-soft)}
 .pdf-opt.active i,.pdf-opt.active span{color:var(--accent)}
 html:not(.dark) .pdf-opt.active i,html:not(.dark) .pdf-opt.active span{color:#4d7d00}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 #toast{
   position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
   background:var(--surface);color:var(--text);
@@ -763,7 +764,7 @@ html:not(.dark) .pdf-opt.active i,html:not(.dark) .pdf-opt.active span{color:#4d
         </div>
       </div>
     </div>
-    <div class="fg"><span class="fl">Turno</span><div class="tbs" id="t-btns"><button class="tb-btn" data-t="desayuno"><i class="ti ti-coffee"></i><span>Desayuno</span></button><button class="tb-btn" data-t="almuerzo"><i class="ti ti-salad"></i><span>Almuerzo</span></button><button class="tb-btn" data-t="cena"><i class="ti ti-moon"></i><span>Cena</span></button></div></div>
+    <div class="fg"><span class="fl">Turno</span><input type="hidden" id="mp-turno-act" value="almuerzo"/><div class="tbs" id="t-btns"><button class="tb-btn" data-t="desayuno"><i class="ti ti-coffee"></i><span>Desayuno</span></button><button class="tb-btn" data-t="almuerzo"><i class="ti ti-salad"></i><span>Almuerzo</span></button><button class="tb-btn" data-t="cena"><i class="ti ti-moon"></i><span>Cena</span></button></div></div>
     <div class="fg"><span class="fl">Cliente</span><select class="field" id="mp-tipo"><option value="generico">Sin nombre (Cliente)</option><option value="conocido">Cliente conocido</option><option value="empresa">Empresa</option></select><div id="mp-cw" class="hidden" style="margin-top:8px"><select class="field" id="mp-ci"></select></div><div id="mp-ew" class="hidden" style="margin-top:8px"><select class="field" id="mp-ei"></select></div></div>
     <div class="fg" style="position:relative"><span class="fl">Plato / consumo</span><input class="field" id="mp-pl" placeholder="Ej: Lomo saltado…" autocomplete="off"/><div id="mp-dd" style="display:none;position:absolute;left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:100;max-height:180px;overflow-y:auto;margin-top:2px"></div></div>
     <div class="fr"><div class="fg"><span class="fl">Medio de pago</span><select class="field" id="mp-me"><option>Efectivo</option><option>Yape</option><option>Mixto</option></select></div><div class="fg"><span class="fl">Monto (S/)</span><input class="field" type="number" min="0" step="0.5" id="mp-mo" placeholder="0.00"/></div></div>
@@ -978,8 +979,9 @@ function initDates(){
     } else {
       mFecha=`${sy}-${String(sm).padStart(2,'0')}-01`
     }
-    // Reset day filter when period changes
+    // Reset day filter — limpiar override si no pertenece al nuevo mes
     pedidoFechaOverride=null
+    const fd=g('fd'); if(fd) fd.value=''
     populateDayFilter()
     renderAll()
   }
@@ -1145,10 +1147,10 @@ function rMenu(){
   const m=S.menus[mFecha]||{}
   g('mc-cards').innerHTML=Object.entries(TR).map(([k,t])=>{const tm=m[k],pls=tm?.platos?.length?tm.platos:(tm?.fondo?tm.fondo.split(' / ').map(s=>s.trim()).filter(Boolean):[]);return`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:16px;border-top:3px solid ${t.c};box-shadow:0 1px 3px var(--shadow-card)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:13px"><div style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:7px;background:color-mix(in srgb,${t.c} 14%,transparent);display:flex;align-items:center;justify-content:center;font-size:14px;color:${t.c}"><i class="ti ${k==='desayuno'?'ti-coffee':k==='almuerzo'?'ti-salad':'ti-moon'}"></i></div><div><div style="font-size:13px;font-weight:700;color:${t.c}">${t.l}</div><div style="font-size:10px;color:var(--text-mute)">${t.h}</div></div></div><button class="btn-s" style="font-size:11px;padding:5px 10px" onclick="edMenu('${k}')"><i class="ti ${tm?'ti-edit':'ti-plus'}"></i> ${tm?'Editar':'Agregar'}</button></div>${tm?`<div style="display:flex;flex-direction:column;gap:9px">${tm.entrada?`<div><span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:color-mix(in srgb,${t.c} 11%,transparent);color:${t.c}">Entrada</span><div style="font-size:13px;color:var(--text-dim);margin-top:4px">${tm.entrada}</div></div>`:''} ${pls.length?`<div><span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:color-mix(in srgb,${t.c} 11%,transparent);color:${t.c}">Plato${pls.length>1?'s':''}</span><div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">${pls.map(pl=>`<span style="background:var(--surface-2);color:var(--text-dim);font-size:12px;padding:3px 10px;border-radius:20px;border:1px solid var(--border)">${pl}</span>`).join('')}</div></div>`:''} ${tm.refresco?`<div><span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:color-mix(in srgb,${t.c} 11%,transparent);color:${t.c}">Bebida</span><div style="font-size:13px;color:var(--text-dim);margin-top:4px">${tm.refresco}</div></div>`:''} ${tm.extras?`<div><span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--surface-2);color:var(--text-mute)">Extras</span><div style="font-size:12px;color:var(--text-mute);margin-top:4px">${tm.extras}</div></div>`:''}</div>`:`<div style="font-size:13px;color:var(--text-mute);text-align:center;padding:14px 0;font-style:italic">Sin menú registrado</div>`}</div>`}).join('')
   const rec=Object.entries(S.menus).filter(([d])=>d!==mFecha).sort(([a],[b])=>b.localeCompare(a)).slice(0,7)
-  g('mh').innerHTML=rec.length===0?`<div style="font-size:13px;color:var(--text-mute);text-align:center;padding:14px">Sin menús anteriores</div>`:rec.map(([fecha,m])=>`<div class="card" style="display:flex;align-items:center;gap:14px;padding:12px 14px;cursor:pointer;margin-bottom:8px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor=''" onclick="mFecha='${fecha}';rMenu()"><div style="font-size:12px;font-weight:600;color:var(--text-mute);min-width:90px">${$f(fecha)}</div><div style="display:flex;gap:12px;flex-wrap:wrap;flex:1">${Object.entries(TR).map(([k,t])=>{const pls=m[k]?.platos?.length?m[k].platos:(m[k]?.fondo?[m[k].fondo]:[]);return pls.length?`<span style="font-size:11px;color:${t.c}"><i class="ti ${k==='desayuno'?'ti-coffee':k==='almuerzo'?'ti-salad':'ti-moon'}" style="font-size:10px"></i> ${pls.join(', ')}</span>`:''}).join('')}</div><i class="ti ti-chevron-right" style="color:var(--border-soft)"></i></div>`).join('')
+  g('mh').innerHTML=rec.length===0?`<div style="font-size:13px;color:var(--text-mute);text-align:center;padding:14px">Sin menús anteriores</div>`:rec.map(([fecha,m])=>`<div class="card" style="display:flex;align-items:center;gap:14px;padding:12px 14px;cursor:pointer;margin-bottom:8px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor=''" onclick="setMenuFecha('${fecha}')"><div style="font-size:12px;font-weight:600;color:var(--text-mute);min-width:90px">${$f(fecha)}</div><div style="display:flex;gap:12px;flex-wrap:wrap;flex:1">${Object.entries(TR).map(([k,t])=>{const pls=m[k]?.platos?.length?m[k].platos:(m[k]?.fondo?[m[k].fondo]:[]);return pls.length?`<span style="font-size:11px;color:${t.c}"><i class="ti ${k==='desayuno'?'ti-coffee':k==='almuerzo'?'ti-salad':'ti-moon'}" style="font-size:10px"></i> ${pls.join(', ')}</span>`:''}).join('')}</div><i class="ti ti-chevron-right" style="color:var(--border-soft)"></i></div>`).join('')
 }
 let edMenuT=null
-window.mFecha=mFecha
+window.setMenuFecha=f=>{mFecha=f;rMenu()}
 window.edMenu=t=>{
   edMenuT=t;const tr=TR[t],m=S.menus[mFecha]?.[t]||{},pls=m.platos?.length?m.platos:(m.fondo?m.fondo.split(' / ').map(s=>s.trim()).filter(Boolean):[''])
   const ov=document.createElement('div');ov.className='mo';ov.id='m-ov'
@@ -1239,8 +1241,21 @@ window.pagarPGral=async id=>{
   try{await updateDoc(doc(db,'pedidos',id),{pagado:true});toast('Pedido marcado como pagado')}
   catch(e){toast('Error',false)}
 }
-window.opAb=(id,t,s)=>{abTgt={id,t};g('mab-s').textContent=$m(s);g('mab-mo').value='';g('mab-ti').textContent=`Abonar — ${t==='cliente'?S.clientes.find(x=>x.id===id)?.nombre:S.empresas.find(x=>x.id===id)?.nombre}`;openM('mod-ab')}
-window.pagTodo=async(id,t)=>{const pend=S.pedidos.filter(p=>(t==='cliente'?p.clienteId===id:p.empresaId===id)&&!p.pagado);try{await Promise.all(pend.map(p=>updateDoc(doc(db,'pedidos',p.id),{pagado:true})));toast('Cuenta saldada')}catch(e){toast('Error',false)}}
+window.opAb=(id,tipo,s)=>{abTgt={id,tipo};g('mab-s').textContent=$m(s);g('mab-mo').value='';g('mab-ti').textContent=`Abonar — ${tipo==='cliente'?S.clientes.find(x=>x.id===id)?.nombre:S.empresas.find(x=>x.id===id)?.nombre}`;openM('mod-ab')}
+window.pagTodo=async(id,t)=>{
+  const nombre=t==='cliente'?S.clientes.find(x=>x.id===id)?.nombre:S.empresas.find(x=>x.id===id)?.nombre
+  const pend=S.pedidos.filter(p=>(t==='cliente'?p.clienteId===id:p.empresaId===id)&&!p.pagado)
+  const totalPend=pend.reduce((a,p)=>a+Number(p.monto||0),0)
+  if(!confirm(`¿Marcar toda la deuda de ${nombre} como pagada?\nTotal: ${$m(totalPend)}`))return
+  try{
+    await Promise.all(pend.map(p=>updateDoc(doc(db,'pedidos',p.id),{pagado:true})))
+    await addDoc(collection(db,'pagos'),{
+      ...(t==='cliente'?{clienteId:id}:{empresaId:id}),
+      monto:totalPend,medio:'Efectivo',fecha:hoy(),creadoEn:serverTimestamp()
+    })
+    toast('Cuenta saldada')
+  }catch(e){toast('Error',false)}
+}
 g('btn-gab').onclick=async()=>{
   const monto=Number(g('mab-mo').value)
   if(!monto||monto<=0){toast('Monto inválido',false);return}
@@ -1254,15 +1269,14 @@ g('btn-gab').onclick=async()=>{
     if(rest<=0)break
     const pm=Number(p.monto||0)
     if(rest>=pm){
-      // Abono cubre pedido completo → marcar pagado
       ups.push(updateDoc(doc(db,'pedidos',p.id),{pagado:true}))
       rest-=pm
     } else {
-      // Abono parcial → reducir monto del pedido
       ups.push(updateDoc(doc(db,'pedidos',p.id),{monto:Math.round((pm-rest)*100)/100}))
       rest=0
     }
   }
+  const btn=g('btn-gab');btn.disabled=true;btn.innerHTML='<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Registrando…'
   try{
     await Promise.all(ups)
     await addDoc(collection(db,'pagos'),{
@@ -1273,6 +1287,7 @@ g('btn-gab').onclick=async()=>{
     closeM('mod-ab')
     toast(saldoRestante<=0?'Cuenta saldada completamente':`Abono ${$m(monto)} registrado · Resta: ${$m(saldoRestante)}`)
   }catch(e){toast('Error al registrar abono',false)}
+  finally{btn.disabled=false;btn.innerHTML='<i class="ti ti-check"></i> Registrar abono'}
 }
 
 function rAjustes(){
@@ -1284,7 +1299,9 @@ function rAjustes(){
 function openModP(p=null){
   eId.p=p?.id||null;g('mp-ti').textContent=p?'Editar pedido':'Nuevo pedido'
   pagOn=p?.pagado||false;g('tg-p').className=`tgt ${pagOn?'on':'off'}`
-  const tSel=p?.turno||tAct
+  // Guardar turno seleccionado en variable del modal para leer de forma fiable
+  let activeModalT=p?.turno||tAct
+  const tSel=activeModalT
   // Populate fecha fields
   const m=gMes(),y=gAnio()
   const mesLabel=`${MESES[m-1]} ${y}`
@@ -1297,24 +1314,23 @@ function openModP(p=null){
   const dayEdit=fechaDate.getDate()
   if(g('mp-fecha-dia')){
     g('mp-fecha-dia').innerHTML=''
+    const todayStr=hoy()
     for(let d=1;d<=diasMes;d++){
-      // Block future dates
-      const isToday=d===hoyNum&&m===new Date().getMonth()+1&&y===new Date().getFullYear()
-      const isFuture=new Date(y,m-1,d)>new Date()
-      if(isFuture) continue
       const fdStr=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`
+      // Bloquear solo fechas estrictamente posteriores a hoy (comparación de strings YYYY-MM-DD)
+      if(fdStr>todayStr) continue
+      const isToday=fdStr===todayStr
       const opt=document.createElement('option')
       opt.value=fdStr; opt.textContent=`${d}${isToday?' (hoy)':''}`
       if(d===dayEdit) opt.selected=true
       g('mp-fecha-dia').appendChild(opt)
     }
-    // When day changes → reload plato dropdown with that day's menu
-    g('mp-fecha-dia').onchange=()=>{
-      const sel=document.querySelector('.tb-btn[class*=" tb-"]')?.dataset?.t||tAct
-      updDD(sel)
-    }
+    // When day changes → reload plato dropdown with the currently active turno
+    g('mp-fecha-dia').onchange=()=>updDD(activeModalT)
   }
   document.querySelectorAll('.tb-btn').forEach(b=>{const k=b.dataset.t;b.className=`tb-btn${k===tSel?` tb-${k==='desayuno'?'de':k==='almuerzo'?'al':'ce'}`:''}`})
+  // Sincronizar el input oculto con el turno inicial
+  const tiAct=g('mp-turno-act');if(tiAct)tiAct.value=tSel
   g('mp-ci').innerHTML=`<option value="">— Seleccionar —</option>`+S.clientes.map(c=>`<option value="${c.id}"${p?.clienteId===c.id?' selected':''}>${c.nombre}</option>`).join('')
   g('mp-ei').innerHTML=`<option value="">— Seleccionar —</option>`+S.empresas.map(e=>`<option value="${e.id}"${p?.empresaId===e.id?' selected':''}>${e.nombre}</option>`).join('')
   const tipoCl=p?.empresaId?'empresa':p?.clienteId?'conocido':'generico'
@@ -1350,17 +1366,24 @@ g('mp-pl')?.addEventListener('input',()=>{const v=(g('mp-pl').value||'').toLower
 document.addEventListener('click',e=>{if(!g('mp-pl')?.contains(e.target)&&!g('mp-dd')?.contains(e.target)){const dd=g('mp-dd');if(dd)dd.style.display='none'}})
 g('mp-tipo').onchange=e=>updTipo(e.target.value)
 g('mp-me').onchange=updMixto
-document.querySelectorAll('.tb-btn').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.t;document.querySelectorAll('.tb-btn').forEach(x=>x.className='tb-btn');b.className=`tb-btn tb-${k==='desayuno'?'de':k==='almuerzo'?'al':'ce'}`;updDD(k)}))
+document.querySelectorAll('.tb-btn').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.t;document.querySelectorAll('.tb-btn').forEach(x=>x.className='tb-btn');b.className=`tb-btn tb-${k==='desayuno'?'de':k==='almuerzo'?'al':'ce'}`;// Guardar turno activo en el input oculto para que btn-gp lo lea
+const ti=g('mp-turno-act');if(ti)ti.value=k;updDD(k)}))
 window.togPag=()=>{pagOn=!pagOn;g('tg-p').className=`tgt ${pagOn?'on':'off'}`}
 g('btn-gp').onclick=async()=>{
   const plato=g('mp-pl').value.trim(),monto=Number(g('mp-mo').value)
   if(!plato){toast('Ingresa el plato',false);return}
   if(!monto||monto<=0){toast('Monto inválido',false);return}
-  const tSel=document.querySelector('.tb-btn[class*=" tb-"]')?.dataset?.t||tAct
+  const tSel=g('mp-turno-act')?.value||tAct
   const tipoCl=g('mp-tipo').value
   const data=cln({turno:tSel,plato,monto,pagado:pagOn,medio:g('mp-me').value,notas:g('mp-no').value.trim()||null,clienteId:tipoCl==='conocido'?(g('mp-ci').value||null):null,empresaId:tipoCl==='empresa'?(g('mp-ei').value||null):null,montoEfectivo:g('mp-ef').value?Number(g('mp-ef').value):null,montoYape:g('mp-yp').value?Number(g('mp-yp').value):null})
   const fechaGuardar=g('mp-fecha-dia')?.value||hoy()
-  try{if(eId.p){await updateDoc(doc(db,'pedidos',eId.p),{...data,fecha:fechaGuardar,actualizadoEn:serverTimestamp()});toast('Pedido actualizado')}else{await addDoc(collection(db,'pedidos'),{...data,fecha:fechaGuardar,creadoEn:serverTimestamp()});toast('Pedido registrado')};closeM('mod-p')}catch(e){toast('Error',false)}
+  const btn=g('btn-gp');btn.disabled=true;btn.innerHTML='<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Guardando…'
+  try{
+    if(eId.p){await updateDoc(doc(db,'pedidos',eId.p),{...data,fecha:fechaGuardar,actualizadoEn:serverTimestamp()});toast('Pedido actualizado')}
+    else{await addDoc(collection(db,'pedidos'),{...data,fecha:fechaGuardar,creadoEn:serverTimestamp()});toast('Pedido registrado')}
+    closeM('mod-p')
+  }catch(e){toast('Error al guardar',false)}
+  finally{btn.disabled=false;btn.innerHTML='<i class="ti ti-check"></i> Guardar pedido'}
 }
 g('mp-x').onclick=()=>closeM('mod-p')
 g('btn-np').onclick=()=>openModP()
@@ -1409,12 +1432,15 @@ window.openPdfModal=function openPdfModal(){
     ...S.empresas.map(e=>({v:`em:${e.id}`,l:e.nombre+' (empresa)'}))
   ]
   g('pdf-entidad').innerHTML=ents.map(e=>`<option value="${e.v}">${e.l}</option>`).join('')
-  // Update preview whenever options change
-  const upd=()=>updatePdfPreview()
-  g('pdf-dia')?.addEventListener('change',upd)
-  g('pdf-desde')?.addEventListener('change',upd)
-  g('pdf-hasta')?.addEventListener('change',upd)
-  g('pdf-entidad')?.addEventListener('change',upd)
+  // Update preview whenever options change — registrar solo una vez
+  if(!g('pdf-dia')?._listenerSet){
+    const upd=()=>updatePdfPreview()
+    g('pdf-dia')?.addEventListener('change',upd)
+    g('pdf-desde')?.addEventListener('change',upd)
+    g('pdf-hasta')?.addEventListener('change',upd)
+    g('pdf-entidad')?.addEventListener('change',upd)
+    if(g('pdf-dia')) g('pdf-dia')._listenerSet=true
+  }
   updatePdfPreview()
   openM('mod-pdf')
 }
@@ -1663,13 +1689,29 @@ window.generarPDF=function generarPDF(){
     line(14,cy,W-14,C.dark,0.4) // stronger line under header
     cy+=3.5
 
+    // ══════════════════════════════════════════
+    // FOOTER helper — definido antes del loop de filas
+    // ══════════════════════════════════════════
+    // El "de N" se rellena al final cuando sabemos el total de páginas
+    const footerQueue=[] // páginas que necesitan footer
+    function stampFooters(){
+      const tot=doc.getNumberOfPages()
+      for(let i=1;i<=tot;i++){
+        doc.setPage(i)
+        doc.setDrawColor(200,204,210); doc.setLineWidth(0.3)
+        doc.line(14,H-12,W-14,H-12)
+        setF(6.5); setC(C.light)
+        doc.text('La Cocina de Rossana  ·  Sistema de gestión',14,H-8)
+        doc.text('Documento confidencial — uso interno',W/2,H-8,{align:'center'})
+        doc.text(`Página ${i} de ${tot}`,W-14,H-8,{align:'right'})
+      }
+    }
+
     // Table rows
     const tl={desayuno:'Desayuno',almuerzo:'Almuerzo',cena:'Cena'}
     const sorted=ps.slice().sort((a,b)=>a.fecha.localeCompare(b.fecha))
     sorted.forEach((p,i)=>{
       if(cy>272){
-        // Footer before page break
-        addFooter(doc,W,H,doc.getNumberOfPages())
         doc.addPage()
         cy=15
         // Repeat column headers on new page
@@ -1729,21 +1771,9 @@ window.generarPDF=function generarPDF(){
     doc.text($m(total),155,cy,{align:'right'})
 
     // ══════════════════════════════════════════
-    // FOOTER on all pages
+    // FOOTER — estampar en todas las páginas al final (ya sabemos el total)
     // ══════════════════════════════════════════
-    function addFooter(doc,W,H,pageNum){
-      const tot=doc.getNumberOfPages()
-      line(14,H-12,W-14,[200,204,210],0.3)
-      setF(6.5); setC(C.light)
-      doc.text('La Cocina de Rossana  ·  Sistema de gestión',14,H-8)
-      doc.text('Documento confidencial — uso interno',W/2,H-8,{align:'center'})
-      doc.text(`Página ${pageNum} de ${tot}`,W-14,H-8,{align:'right'})
-    }
-    const totalPages=doc.getNumberOfPages()
-    for(let i=1;i<=totalPages;i++){
-      doc.setPage(i)
-      addFooter(doc,W,H,i)
-    }
+    stampFooters()
 
     // Save
     doc.save(g('pdf-filename')?.textContent||`rossana-${String(m).padStart(2,'0')}-${y}.pdf`)
